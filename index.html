@@ -12,21 +12,25 @@
         <p class="subtitle">Scala la torre e raccogli mostri leggendari!</p>
         
         <div class="stats">
-            <div class="stat-card">
-                <h3>🏢 Piano</h3>
-                <div id="floor" style="font-size: 1.5em; font-weight: bold;">1</div>
+            <div class="stat-item">
+                <span class="stat-icon">🏢</span>
+                <span class="stat-label">Piano:</span>
+                <span class="stat-value" id="floor">1</span>
             </div>
-            <div class="stat-card">
-                <h3>💰 Denaro</h3>
-                <div id="money" style="font-size: 1.2em;">100</div>
+            <div class="stat-item">
+                <span class="stat-icon">💰</span>
+                <span class="stat-label">Denaro:</span>
+                <span class="stat-value" id="money">100</span>
             </div>
-            <div class="stat-card">
-                <h3>🎯 Pokeball</h3>
-                <div id="pokeballs" style="font-size: 1.5em; color: #ff6b6b;">3</div>
+            <div class="stat-item">
+                <span class="stat-icon">🎯</span>
+                <span class="stat-label">Pokeball:</span>
+                <span class="stat-value" id="pokeballs">3</span>
             </div>
-            <div class="stat-card">
-                <h3>👹 Catturati</h3>
-                <div id="caught" style="font-size: 1.5em; color: #4CAF50;">0</div>
+            <div class="stat-item">
+                <span class="stat-icon">👹</span>
+                <span class="stat-label">Catturati:</span>
+                <span class="stat-value" id="caught">0</span>
             </div>
         </div>
         
@@ -34,12 +38,20 @@
             <div class="exploration">
                 <h3>🏢 Torre dei Mostri</h3>
                 
-                <div class="buttons">
-                    <button id="explore-btn" onclick="explore()">🔍 Avanza Piano 1</button>
-                    <button onclick="showHelp()">❓ Aiuto</button>
+                <!-- Area incontri sempre visibile -->
+                <div id="encounter-area">
+                    <div class="encounter">
+                        <h3>🌟 Benvenuto nella Torre!</h3>
+                        <span class="monster-sprite">🗼</span>
+                        <h4>Inizia la tua avventura</h4>
+                        <p style="margin: 15px 0;">Benvenuto nella Torre dei Mostri! Sei pronto per iniziare la tua scalata epica?</p>
+                        <p style="color: #ffd700; font-size: 0.9em;">💡 Piano 1: Il tuo primo mostro ti aspetta!</p>
+                        <div class="buttons">
+                            <button onclick="explore()" id="main-explore-btn">🌟 Inizia al Piano 1</button>
+                            <button onclick="showHelp()">❓ Aiuto</button>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="encounter-area"></div>
                 
                 <div class="log-area">
                     <div id="game-log">

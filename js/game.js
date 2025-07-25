@@ -21,6 +21,11 @@ const game = {
 
 // Initialize game
 function initGame() {
+    // Ensure player values are valid numbers
+    game.player.money = Math.max(0, parseInt(game.player.money) || 100);
+    game.player.pokeballs = Math.max(0, parseInt(game.player.pokeballs) || 3);
+    game.currentFloor = Math.max(1, parseInt(game.currentFloor) || 1);
+    
     updateDisplay();
     addLog("🚀 Torre dei Mostri caricata! Inizia la tua scalata!");
 }
@@ -85,12 +90,27 @@ function advanceFloor() {
     
     clearEncounter();
     addLog(`🏢 Sei avanzato al piano ${game.currentFloor}!`);
+    
+    // Automatically show the next encounter
+    setTimeout(() => {
+        explore();
+    }, 500);
 }
 
-// Clear current encounter
+// Clear current encounter but maintain the encounter area
 function clearEncounter() {
-    document.getElementById('encounter-area').innerHTML = '';
     game.currentMonster = null;
+    
+    // Show a transition message while preparing next encounter
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter">
+            <h3>🔄 Avanzando...</h3>
+            <span class="monster-sprite">⬆️</span>
+            <h4>Piano ${game.currentFloor}</h4>
+            <p style="margin: 15px 0;">Stai salendo al piano successivo...</p>
+        </div>
+    `;
+    
     updateDisplay();
 }
 
@@ -110,7 +130,24 @@ function showHelp() {
                 <p><strong>⚔️ Strategia:</strong> Usa le battaglie per indebolire i mostri prima di catturarli</p>
             </div>
             <div class="buttons">
-                <button onclick="clearEncounter()">✅ Ho Capito</button>
+                <button onclick="showWelcomeEncounter()">✅ Ho Capito</button>
+            </div>
+        </div>
+    `;
+}
+
+// Show welcome encounter for new players
+function showWelcomeEncounter() {
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter">
+            <h3>🌟 Benvenuto nella Torre!</h3>
+            <span class="monster-sprite">🗼</span>
+            <h4>Inizia la tua avventura</h4>
+            <p style="margin: 15px 0;">Benvenuto nella Torre dei Mostri! Sei pronto per iniziare la tua scalata epica?</p>
+            <p style="color: #ffd700; font-size: 0.9em;">💡 Piano 1: Il tuo primo mostro ti aspetta!</p>
+            <div class="buttons">
+                <button onclick="explore()">🌟 Inizia al Piano 1</button>
+                <button onclick="showHelp()">❓ Aiuto</button>
             </div>
         </div>
     `;

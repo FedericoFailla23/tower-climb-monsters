@@ -30,17 +30,17 @@ body {
 h1 {
     text-align: center;
     color: #ffd700;
-    font-size: 2.8em;
-    margin-bottom: 10px;
+    font-size: 1.6em; /* Reduced from 2.2em */
+    margin-bottom: 5px; /* Reduced from 8px */
     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
     font-weight: bold;
 }
 
 .subtitle {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 10px; /* Reduced from 15px */
     opacity: 0.9;
-    font-size: 1.1em;
+    font-size: 0.9em; /* Reduced from 1em */
 }
 
 h3 {
@@ -49,34 +49,43 @@ h3 {
     font-size: 1.3em;
 }
 
-/* Stats panel */
+/* Stats panel - Compact horizontal bar */
 .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(5px);
 }
 
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95em;
 }
 
-.stat-card h3 {
-    font-size: 1em;
-    margin-bottom: 10px;
-    opacity: 0.8;
+.stat-item .stat-icon {
+    font-size: 1.2em;
+}
+
+.stat-item .stat-label {
+    color: #ccc;
+    font-size: 0.85em;
+}
+
+.stat-item .stat-value {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* Legacy stat-card styles for compatibility */
+.stat-card {
+    display: none; /* Hide old cards */
 }
 
 /* Main content layout */
@@ -143,13 +152,17 @@ button:disabled {
     box-shadow: none;
 }
 
-/* Encounter styles */
+/* Encounter styles - Always visible and prominent */
+#encounter-area {
+    min-height: 200px; /* Ensure there's always space for encounters */
+}
+
 .encounter {
     background: linear-gradient(135deg, rgba(255, 107, 107, 0.25), rgba(238, 90, 36, 0.25));
     border: 2px solid #ff6b6b;
     padding: 30px;
     border-radius: 15px;
-    margin: 25px 0;
+    margin: 15px 0; /* Reduced margin */
     text-align: center;
     backdrop-filter: blur(5px);
     box-shadow: 0 8px 30px rgba(255, 107, 107, 0.2);
@@ -309,17 +322,17 @@ button:disabled {
     font-size: 0.9em;
 }
 
-/* Log area */
+/* Log area - More compact */
 .log-area {
     background: rgba(0, 0, 0, 0.5);
-    padding: 20px;
+    padding: 15px; /* Reduced from 20px */
     border-radius: 12px;
-    height: 140px;
+    height: 120px; /* Reduced from 140px */
     overflow-y: auto;
     font-family: 'Consolas', monospace;
     font-size: 13px;
     line-height: 1.6;
-    margin-top: 25px;
+    margin-top: 20px; /* Reduced from 25px */
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -380,8 +393,13 @@ button:disabled {
     }
     
     .stats {
-        grid-template-columns: 1fr 1fr;
+        flex-wrap: wrap;
         gap: 15px;
+        justify-content: center;
+    }
+    
+    .stat-item {
+        font-size: 0.9em;
     }
     
     .buttons {
@@ -394,7 +412,7 @@ button:disabled {
     }
     
     h1 {
-        font-size: 2.2em;
+        font-size: 1.4em; /* Reduced from 1.8em for mobile */
     }
     
     .monster-sprite {
@@ -408,7 +426,14 @@ button:disabled {
 
 @media (max-width: 480px) {
     .stats {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        justify-content: space-between;
+        width: 100%;
+        padding: 0 10px;
     }
     
     .shop-item {

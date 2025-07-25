@@ -4,11 +4,11 @@ function showMonsterSelection() {
     
     game.monsters.forEach((monster, index) => {
         const isSelected = game.battle.selectedMonster === index;
-        const level = monster.level || 1;
-        const hp = monster.hp || monster.baseHP || 0;
-        const maxHP = monster.maxHP || monster.baseHP || 0;
-        const attack = monster.attack || monster.baseAttack || 0;
-        const defense = monster.defense || monster.baseDefense || 0;
+        const level = parseInt(monster.level) || 1;
+        const hp = parseInt(monster.hp) || parseInt(monster.baseHP) || 0;
+        const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 0;
+        const attack = parseInt(monster.attack) || parseInt(monster.baseAttack) || 0;
+        const defense = parseInt(monster.defense) || parseInt(monster.baseDefense) || 0;
         
         monsterOptions += `
             <div onclick="selectMonster(${index})" style="
@@ -73,35 +73,37 @@ function startBattleWithMonster(monsterIndex) {
     const playerMonster = game.monsters[monsterIndex];
     
     // Ensure monster has HP
-    if (!playerMonster.hp || playerMonster.hp <= 0) {
-        playerMonster.hp = playerMonster.maxHP || playerMonster.baseHP;
+    const currentHP = parseInt(playerMonster.hp) || 0;
+    const maxHP = parseInt(playerMonster.maxHP) || parseInt(playerMonster.baseHP) || 30;
+    if (currentHP <= 0) {
+        playerMonster.hp = maxHP;
     }
     
-    // Set up battle monsters
+    // Set up battle monsters with safe number parsing
     game.battle.playerMonster = {
         name: playerMonster.name,
         sprite: playerMonster.sprite,
-        level: playerMonster.level || 1,
-        hp: playerMonster.hp,
-        maxHP: playerMonster.maxHP || playerMonster.baseHP,
-        attack: playerMonster.attack || playerMonster.baseAttack,
-        defense: playerMonster.defense || playerMonster.baseDefense,
+        level: parseInt(playerMonster.level) || 1,
+        hp: parseInt(playerMonster.hp) || maxHP,
+        maxHP: maxHP,
+        attack: parseInt(playerMonster.attack) || parseInt(playerMonster.baseAttack) || 20,
+        defense: parseInt(playerMonster.defense) || parseInt(playerMonster.baseDefense) || 15,
         captureDate: playerMonster.captureDate
     };
     
     game.battle.enemyMonster = {
         name: game.currentMonster.name,
         sprite: game.currentMonster.sprite,
-        level: game.currentMonster.level,
-        hp: game.currentMonster.hp,
-        maxHP: game.currentMonster.maxHP,
-        attack: game.currentMonster.attack,
-        defense: game.currentMonster.defense
+        level: parseInt(game.currentMonster.level) || 1,
+        hp: parseInt(game.currentMonster.hp) || parseInt(game.currentMonster.maxHP) || 30,
+        maxHP: parseInt(game.currentMonster.maxHP) || 30,
+        attack: parseInt(game.currentMonster.attack) || parseInt(game.currentMonster.baseAttack) || 20,
+        defense: parseInt(game.currentMonster.defense) || parseInt(game.currentMonster.baseDefense) || 15
     };
     
-    // Initialize battle state
-    game.battle.playerHP = game.battle.playerMonster.hp;
-    game.battle.enemyHP = game.battle.enemyMonster.hp;
+    // Initialize battle state with safe numbers
+    game.battle.playerHP = parseInt(game.battle.playerMonster.hp) || 0;
+    game.battle.enemyHP = parseInt(game.battle.enemyMonster.hp) || 0;
     game.battle.active = true;
     game.battle.turn = 'player';
     
@@ -114,10 +116,10 @@ function showBattleScreen() {
     const playerMonster = game.battle.playerMonster;
     const enemyMonster = game.battle.enemyMonster;
     
-    const playerMaxHP = playerMonster.maxHP || playerMonster.hp || 100;
-    const enemyMaxHP = enemyMonster.maxHP || enemyMonster.hp || 100;
-    const playerCurrentHP = game.battle.playerHP || 0;
-    const enemyCurrentHP = game.battle.enemyHP || 0;
+    const playerMaxHP = parseInt(playerMonster.maxHP) || parseInt(playerMonster.hp) || 100;
+    const enemyMaxHP = parseInt(enemyMonster.maxHP) || parseInt(enemyMonster.hp) || 100;
+    const playerCurrentHP = Math.max(0, parseInt(game.battle.playerHP) || 0);
+    const enemyCurrentHP = Math.max(0, parseInt(game.battle.enemyHP) || 0);
     
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter battle-encounter">
@@ -170,12 +172,12 @@ function playerAttack() {
     const playerMonster = game.battle.playerMonster;
     const enemyMonster = game.battle.enemyMonster;
     
-    const playerAttackStat = playerMonster.attack || 30;
-    const enemyDefense = enemyMonster.defense || 20;
+    const playerAttackStat = parseInt(playerMonster.attack) || 30;
+    const enemyDefense = parseInt(enemyMonster.defense) || 20;
     
-    // Calculate damage
+    // Calculate damage with safe number operations
     const damage = Math.max(1, Math.floor(playerAttackStat - enemyDefense / 2 + Math.random() * 10));
-    game.battle.enemyHP = Math.max(0, game.battle.enemyHP - damage);
+    game.battle.enemyHP = Math.max(0, (parseInt(game.battle.enemyHP) || 0) - damage);
     
     addLog(`⚔️ ${playerMonster.name} attacca per ${damage} danni!`);
     
@@ -197,12 +199,12 @@ function enemyAttack() {
     const playerMonster = game.battle.playerMonster;
     const enemyMonster = game.battle.enemyMonster;
     
-    const enemyAttackStat = enemyMonster.attack || 25;
-    const playerDefense = playerMonster.defense || 20;
+    const enemyAttackStat = parseInt(enemyMonster.attack) || 25;
+    const playerDefense = parseInt(playerMonster.defense) || 20;
     
-    // Calculate damage
+    // Calculate damage with safe number operations
     const damage = Math.max(1, Math.floor(enemyAttackStat - playerDefense / 2 + Math.random() * 8));
-    game.battle.playerHP = Math.max(0, game.battle.playerHP - damage);
+    game.battle.playerHP = Math.max(0, (parseInt(game.battle.playerHP) || 0) - damage);
     
     addLog(`💥 ${enemyMonster.name} attacca per ${damage} danni!`);
     
@@ -223,12 +225,15 @@ function endBattle(result) {
     game.battle.active = false;
     
     if (result === 'victory') {
-        // Calculate rewards
-        const moneyReward = Math.floor(game.battle.enemyMonster.expValue * 1.2);
-        const expReward = game.battle.enemyMonster.expValue;
+        // Calculate rewards with safe number operations
+        const enemyExpValue = parseInt(game.battle.enemyMonster.expValue) || parseInt(game.currentMonster.expValue) || 10;
+        const moneyReward = Math.floor(enemyExpValue * 1.2);
+        const expReward = enemyExpValue;
         
-        // Give rewards
+        // Give rewards with safe number operations
+        game.player.money = Math.max(0, parseInt(game.player.money) || 0);
         game.player.money += moneyReward;
+        
         game.monsters.forEach(monster => {
             giveMonsterExp(monster, expReward);
         });
@@ -237,7 +242,7 @@ function endBattle(result) {
         
         // Make enemy easier to catch
         if (game.currentMonster) {
-            game.currentMonster.catchRate = Math.min(90, game.currentMonster.catchRate + 25);
+            game.currentMonster.catchRate = Math.min(90, (parseInt(game.currentMonster.catchRate) || 50) + 25);
         }
         
         document.getElementById('encounter-area').innerHTML = `

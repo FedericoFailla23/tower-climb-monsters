@@ -12,30 +12,33 @@ const monsterData = [
 
 // Create a scaled monster based on level
 function createScaledMonster(baseMonster, level) {
+    // Ensure level is a valid number
+    const safeLevel = Math.max(1, parseInt(level) || 1);
+    
     const scaledMonster = {
         name: baseMonster.name,
         sprite: baseMonster.sprite,
         rarity: baseMonster.rarity,
-        catchRate: baseMonster.catchRate,
-        expValue: baseMonster.expValue,
-        baseHP: baseMonster.baseHP,
-        baseAttack: baseMonster.baseAttack,
-        baseDefense: baseMonster.baseDefense,
-        level: level
+        catchRate: Math.max(5, parseInt(baseMonster.catchRate) || 50),
+        expValue: Math.max(1, parseInt(baseMonster.expValue) || 10),
+        baseHP: Math.max(1, parseInt(baseMonster.baseHP) || 30),
+        baseAttack: Math.max(1, parseInt(baseMonster.baseAttack) || 20),
+        baseDefense: Math.max(1, parseInt(baseMonster.baseDefense) || 15),
+        level: safeLevel
     };
     
-    // Calculate stats based on level
-    const levelBonus = level - 1;
-    scaledMonster.maxHP = baseMonster.baseHP + Math.floor(levelBonus * (baseMonster.baseHP * 0.1));
+    // Calculate stats based on level - ensure all values are numbers
+    const levelBonus = safeLevel - 1;
+    scaledMonster.maxHP = scaledMonster.baseHP + Math.floor(levelBonus * (scaledMonster.baseHP * 0.1));
     scaledMonster.hp = scaledMonster.maxHP;
-    scaledMonster.attack = baseMonster.baseAttack + Math.floor(levelBonus * (baseMonster.baseAttack * 0.15));
-    scaledMonster.defense = baseMonster.baseDefense + Math.floor(levelBonus * (baseMonster.baseDefense * 0.1));
+    scaledMonster.attack = scaledMonster.baseAttack + Math.floor(levelBonus * (scaledMonster.baseAttack * 0.15));
+    scaledMonster.defense = scaledMonster.baseDefense + Math.floor(levelBonus * (scaledMonster.baseDefense * 0.1));
     
-    // Scale EXP reward based on level
-    scaledMonster.expValue = Math.floor(baseMonster.expValue * (1 + (level - 1) * 0.2));
+    // Scale EXP reward based on level - ensure it's a number
+    scaledMonster.expValue = Math.floor(scaledMonster.expValue * (1 + (safeLevel - 1) * 0.2));
     
     // Slightly reduce catch rate for higher level monsters
-    scaledMonster.catchRate = Math.max(5, baseMonster.catchRate - (level - 1) * 2);
+    scaledMonster.catchRate = Math.max(5, scaledMonster.catchRate - (safeLevel - 1) * 2);
     
     return scaledMonster;
 }
@@ -46,11 +49,11 @@ function initializeMonster(baseMonster) {
         name: baseMonster.name,
         sprite: baseMonster.sprite,
         rarity: baseMonster.rarity,
-        catchRate: baseMonster.catchRate,
-        expValue: baseMonster.expValue,
-        baseHP: baseMonster.baseHP,
-        baseAttack: baseMonster.baseAttack,
-        baseDefense: baseMonster.baseDefense,
+        catchRate: Math.max(5, parseInt(baseMonster.catchRate) || 50),
+        expValue: Math.max(1, parseInt(baseMonster.expValue) || 10),
+        baseHP: Math.max(1, parseInt(baseMonster.baseHP) || 30),
+        baseAttack: Math.max(1, parseInt(baseMonster.baseAttack) || 20),
+        baseDefense: Math.max(1, parseInt(baseMonster.baseDefense) || 15),
         level: 1,
         exp: 0,
         expToNext: 50,
@@ -68,6 +71,9 @@ function initializeMonster(baseMonster) {
 
 // Give experience to a monster
 function giveMonsterExp(monster, expAmount) {
+    // Ensure expAmount is a valid number
+    const safeExpAmount = Math.max(0, parseInt(expAmount) || 0);
+    
     // Fix old monsters that don't have proper leveling data
     if (!monster.hasOwnProperty('level')) {
         monster.level = 1;
@@ -79,7 +85,12 @@ function giveMonsterExp(monster, expAmount) {
         monster.captureDate = Date.now();
     }
     
-    monster.exp += expAmount;
+    // Ensure all monster properties are numbers
+    monster.exp = Math.max(0, parseInt(monster.exp) || 0);
+    monster.level = Math.max(1, parseInt(monster.level) || 1);
+    monster.expToNext = Math.max(1, parseInt(monster.expToNext) || 50);
+    
+    monster.exp += safeExpAmount;
     
     // Level up loop
     while (monster.exp >= monster.expToNext) {
@@ -87,9 +98,9 @@ function giveMonsterExp(monster, expAmount) {
         monster.level++;
         monster.expToNext = Math.floor(monster.expToNext * 1.2);
         
-        // Calculate new stats
+        // Calculate new stats - ensure all are numbers
         const levelBonus = monster.level - 1;
-        const oldMaxHP = monster.maxHP;
+        const oldMaxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
         const wasFullHP = (monster.hp === oldMaxHP);
         
         monster.maxHP = monster.baseHP + Math.floor(levelBonus * (monster.baseHP * 0.1));
@@ -232,7 +243,7 @@ function attemptCatch() {
     const monster = game.currentMonster;
     
     // Calculate catch chance
-    let chance = monster.catchRate;
+    let chance = parseInt(monster.catchRate) || 50;
     const duplicates = game.monsters.filter(m => m.name === monster.name).length;
     chance -= duplicates * 8;
     chance = Math.max(10, Math.min(95, chance));
@@ -240,12 +251,15 @@ function attemptCatch() {
     if (Math.random() * 100 < chance) {
         // Successful catch
         const existingMonster = game.monsters.find(m => m.name === monster.name);
-        const moneyReward = Math.floor(monster.expValue * 0.8);
+        const moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
+        
+        // Ensure money is a valid number before adding
+        game.player.money = Math.max(0, parseInt(game.player.money) || 0);
         game.player.money += moneyReward;
         
         if (existingMonster) {
             // MERGE: Convert caught monster to EXP for existing monster
-            const mergeExp = monster.expValue * 2;
+            const mergeExp = (parseInt(monster.expValue) || 10) * 2;
             giveMonsterExp(existingMonster, mergeExp);
             addLog(`🔄 ${monster.name} catturato e fuso! (+${moneyReward} monete)`);
             addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione!`);
@@ -276,7 +290,7 @@ function attemptCatch() {
 
 // Show different catch result screens
 function showCaptureSuccess(monster) {
-    const moneyReward = Math.floor(monster.expValue * 0.8);
+    const moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
             <h3 style="color: #4CAF50;">✅ Cattura Riuscita!</h3>
@@ -292,7 +306,7 @@ function showCaptureSuccess(monster) {
 }
 
 function showMergeSuccess(caughtMonster, existingMonster, mergeExp) {
-    const moneyReward = Math.floor(caughtMonster.expValue * 0.8);
+    const moneyReward = Math.floor((parseInt(caughtMonster.expValue) || 10) * 0.8);
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
             <h3 style="color: #9C27B0;">🔄 Fusione Riuscita!</h3>
@@ -384,15 +398,19 @@ function spawnEvent() {
     
     const event = events[Math.floor(Math.random() * events.length)];
     
-    // Apply event rewards
+    // Apply event rewards - ensure money operations are safe
     if (event.reward === "money") {
-        game.player.money += event.amount;
+        game.player.money = Math.max(0, parseInt(game.player.money) || 0);
+        game.player.money += parseInt(event.amount) || 0;
     } else if (event.reward === "pokeball") {
-        game.player.pokeballs += event.amount;
+        game.player.pokeballs = Math.max(0, parseInt(game.player.pokeballs) || 0);
+        game.player.pokeballs += parseInt(event.amount) || 0;
     } else if (event.reward === "heal") {
         game.monsters.forEach(monster => {
-            if (monster.hp < monster.maxHP) {
-                monster.hp = Math.min(monster.maxHP, Math.floor(monster.hp + monster.maxHP * event.amount));
+            const currentHP = parseInt(monster.hp) || 0;
+            const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
+            if (currentHP < maxHP) {
+                monster.hp = Math.min(maxHP, Math.floor(currentHP + maxHP * event.amount));
             }
         });
     }

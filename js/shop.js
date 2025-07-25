@@ -3,13 +3,16 @@ function spawnShop() {
     const pokeballPrice = Math.max(10, Math.floor(game.currentFloor / 5) * 5 + 10);
     const healPrice = Math.max(5, Math.floor(game.currentFloor / 10) * 5 + 5);
     
+    // Ensure player money is a valid number
+    const currentMoney = Math.max(0, parseInt(game.player.money) || 0);
+    
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter shop-encounter">
             <h3 style="color: #4CAF50;">🏪 Negozio - Piano ${game.currentFloor}</h3>
             <span class="monster-sprite">🏪</span>
             <h4>Mercante Itinerante</h4>
             <p style="color: #4CAF50;">Benvenuto! Cosa posso offrirti oggi?</p>
-            <p style="color: #ffd700;">💰 Il tuo denaro: ${game.player.money} monete</p>
+            <p style="color: #ffd700;">💰 Il tuo denaro: ${currentMoney} monete</p>
             
             <div style="text-align: left; margin: 20px 0;">
                 <div class="shop-item">
@@ -17,7 +20,7 @@ function spawnShop() {
                         <strong>🎯 Pokeball</strong> - ${pokeballPrice} monete
                         <br><small>Necessarie per catturare i mostri</small>
                     </div>
-                    <button onclick="buyPokeball(${pokeballPrice})" class="shop-buy-btn" ${game.player.money < pokeballPrice ? 'disabled' : ''}>
+                    <button onclick="buyPokeball(${pokeballPrice})" class="shop-buy-btn" ${currentMoney < pokeballPrice ? 'disabled' : ''}>
                         Compra
                     </button>
                 </div>
@@ -27,7 +30,7 @@ function spawnShop() {
                         <strong>💚 Cura Mostri</strong> - ${healPrice} monete
                         <br><small>Ripristina completamente la salute di tutti i mostri</small>
                     </div>
-                    <button onclick="healMonsters(${healPrice})" class="shop-buy-btn" ${game.player.money < healPrice || game.monsters.length === 0 ? 'disabled' : ''}>
+                    <button onclick="healMonsters(${healPrice})" class="shop-buy-btn" ${currentMoney < healPrice || game.monsters.length === 0 ? 'disabled' : ''}>
                         Compra
                     </button>
                 </div>
@@ -54,10 +57,15 @@ function spawnShop() {
 
 // Buy a pokeball
 function buyPokeball(price) {
-    if (game.player.money >= price) {
-        game.player.money -= price;
-        game.player.pokeballs++;
-        addLog(`🎯 Hai comprato una Pokeball per ${price} monete!`);
+    // Ensure safe number operations
+    const safePrice = Math.max(0, parseInt(price) || 0);
+    const currentMoney = Math.max(0, parseInt(game.player.money) || 0);
+    const currentPokeballs = Math.max(0, parseInt(game.player.pokeballs) || 0);
+    
+    if (currentMoney >= safePrice) {
+        game.player.money = currentMoney - safePrice;
+        game.player.pokeballs = currentPokeballs + 1;
+        addLog(`🎯 Hai comprato una Pokeball per ${safePrice} monete!`);
         spawnShop(); // Refresh shop display
         updateDisplay();
     } else {
@@ -67,22 +75,27 @@ function buyPokeball(price) {
 
 // Heal all monsters
 function healMonsters(price) {
-    if (game.player.money >= price && game.monsters.length > 0) {
-        game.player.money -= price;
-        
+    // Ensure safe number operations
+    const safePrice = Math.max(0, parseInt(price) || 0);
+    const currentMoney = Math.max(0, parseInt(game.player.money) || 0);
+    
+    if (currentMoney >= safePrice && game.monsters.length > 0) {
         let healedCount = 0;
         game.monsters.forEach(monster => {
-            if (monster.hp < monster.maxHP) {
-                monster.hp = monster.maxHP;
+            const currentHP = parseInt(monster.hp) || 0;
+            const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
+            if (currentHP < maxHP) {
+                monster.hp = maxHP;
                 healedCount++;
             }
         });
         
         if (healedCount > 0) {
-            addLog(`💚 ${healedCount} mostri sono stati curati per ${price} monete!`);
+            game.player.money = currentMoney - safePrice;
+            addLog(`💚 ${healedCount} mostri sono stati curati per ${safePrice} monete!`);
         } else {
-            addLog(`💚 Tutti i mostri erano già in perfetta salute! Rimborso di ${price} monete.`);
-            game.player.money += price; // Refund if no healing needed
+            addLog(`💚 Tutti i mostri erano già in perfetta salute! Rimborso di ${safePrice} monete.`);
+            // No money deduction if no healing needed
         }
         
         spawnShop(); // Refresh shop display
@@ -107,20 +120,20 @@ function showTeamStats() {
     let totalMaxHP = 0;
     
     game.monsters.forEach((monster, index) => {
-        const level = monster.level || 1;
-        const hp = monster.hp || monster.baseHP || 0;
-        const maxHP = monster.maxHP || monster.baseHP || 0;
-        const attack = monster.attack || monster.baseAttack || 0;
-        const defense = monster.defense || monster.baseDefense || 0;
-        const exp = monster.exp || 0;
-        const expToNext = monster.expToNext || 50;
+        const level = parseInt(monster.level) || 1;
+        const hp = parseInt(monster.hp) || parseInt(monster.baseHP) || 0;
+        const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 0;
+        const attack = parseInt(monster.attack) || parseInt(monster.baseAttack) || 0;
+        const defense = parseInt(monster.defense) || parseInt(monster.baseDefense) || 0;
+        const exp = parseInt(monster.exp) || 0;
+        const expToNext = parseInt(monster.expToNext) || 50;
         
         totalLevel += level;
         totalHP += hp;
         totalMaxHP += maxHP;
         
-        const hpPercentage = (hp / maxHP) * 100;
-        const expPercentage = (exp / expToNext) * 100;
+        const hpPercentage = maxHP > 0 ? (hp / maxHP) * 100 : 100;
+        const expPercentage = expToNext > 0 ? (exp / expToNext) * 100 : 0;
         
         statsHtml += `
             <div style="border: 1px solid rgba(255,255,255,0.3); margin: 10px 0; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.05);">
@@ -152,8 +165,8 @@ function showTeamStats() {
         `;
     });
     
-    const avgLevel = (totalLevel / game.monsters.length).toFixed(1);
-    const teamHP = ((totalHP / totalMaxHP) * 100).toFixed(1);
+    const avgLevel = totalLevel > 0 ? (totalLevel / game.monsters.length).toFixed(1) : "0";
+    const teamHP = totalMaxHP > 0 ? ((totalHP / totalMaxHP) * 100).toFixed(1) : "0";
     
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">

@@ -18,7 +18,6 @@ function addLog(message) {
 // Update all UI elements
 function updateDisplay() {
     updatePlayerStats();
-    updateExploreButton();
     updateCollection();
 }
 
@@ -38,8 +37,8 @@ function updatePlayerStats() {
         pokeballElement.style.color = '#FF9800'; // Orange
         pokeballElement.style.fontWeight = 'bold';
     } else {
-        pokeballElement.style.color = '#ff6b6b'; // Default
-        pokeballElement.style.fontWeight = 'normal';
+        pokeballElement.style.color = 'white'; // Default
+        pokeballElement.style.fontWeight = 'bold';
     }
     
     const moneyElement = document.getElementById('money');
@@ -51,39 +50,13 @@ function updatePlayerStats() {
         moneyElement.style.fontWeight = 'bold';
     } else {
         moneyElement.style.color = 'white'; // Default
-        moneyElement.style.fontWeight = 'normal';
+        moneyElement.style.fontWeight = 'bold';
     }
-}
-
-// Update the explore button text and state
-function updateExploreButton() {
-    const exploreBtn = document.getElementById('explore-btn');
-    if (!exploreBtn) return;
     
-    if (game.currentMonster) {
-        exploreBtn.disabled = true;
-        exploreBtn.textContent = "⏳ Incontro Attivo";
-        exploreBtn.style.opacity = '0.6';
-    } else {
-        exploreBtn.disabled = false;
-        exploreBtn.style.opacity = '1';
-        
-        // Dynamic button text based on floor type
-        const floorType = getFloorType(game.currentFloor);
-        switch(floorType.type) {
-            case 'guaranteed_catch':
-                exploreBtn.textContent = `🌟 Primo Incontro`;
-                break;
-            case 'boss':
-                exploreBtn.textContent = `👑 Boss Piano ${game.currentFloor}`;
-                break;
-            case 'shop':
-                exploreBtn.textContent = `🏪 Negozio Piano ${game.currentFloor}`;
-                break;
-            default:
-                exploreBtn.textContent = `🔍 Esplora Piano ${game.currentFloor}`;
-        }
-    }
+    // Color for caught monsters
+    const caughtElement = document.getElementById('caught');
+    caughtElement.style.color = '#4CAF50';
+    caughtElement.style.fontWeight = 'bold';
 }
 
 // Update the monster collection display
@@ -280,13 +253,6 @@ function formatNumber(num) {
 
 // Show loading state during async operations
 function showLoading(show = true) {
-    const exploreBtn = document.getElementById('explore-btn');
-    if (!exploreBtn) return;
-    
-    if (show) {
-        exploreBtn.disabled = true;
-        exploreBtn.textContent = '⏳ Caricamento...';
-    } else {
-        updateExploreButton(); // Restore normal state
-    }
+    // No longer using explore button in header, so this is not needed
+    // Function kept for compatibility
 }
