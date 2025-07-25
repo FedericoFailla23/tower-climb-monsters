@@ -1,3 +1,5 @@
+// Enhanced game.js with reset functionality and improved game over handling
+
 // Main game state and core logic
 const game = {
     player: {
@@ -26,8 +28,84 @@ function initGame() {
     game.player.pokeballs = Math.max(0, parseInt(game.player.pokeballs) || 3);
     game.currentFloor = Math.max(1, parseInt(game.currentFloor) || 1);
     
+    // Fix any existing monsters with incorrect stats
+    fixMonsterStats();
+    
     updateDisplay();
     addLog("🚀 Torre dei Mostri caricata! Inizia la tua scalata!");
+}
+
+// Fix monsters that don't have proper maxHP calculated
+function fixMonsterStats() {
+    let fixedCount = 0;
+    
+    game.monsters.forEach(monster => {
+        let needsFix = false;
+        
+        // Ensure monster has all required properties
+        if (!monster.level) {
+            monster.level = 1;
+            needsFix = true;
+        }
+        
+        if (!monster.exp) {
+            monster.exp = 0;
+            needsFix = true;
+        }
+        
+        if (!monster.expToNext) {
+            monster.expToNext = Math.floor(50 * Math.pow(1.2, (monster.level || 1) - 1));
+            needsFix = true;
+        }
+        
+        // Fix maxHP calculation if it's missing or incorrect
+        if (!monster.maxHP || monster.maxHP === monster.baseHP) {
+            const level = parseInt(monster.level) || 1;
+            const levelBonus = level - 1;
+            const baseHP = parseInt(monster.baseHP) || 30;
+            
+            monster.maxHP = baseHP + Math.floor(levelBonus * (baseHP * 0.1));
+            needsFix = true;
+        }
+        
+        // Fix attack and defense if they're missing
+        if (!monster.attack) {
+            const level = parseInt(monster.level) || 1;
+            const levelBonus = level - 1;
+            const baseAttack = parseInt(monster.baseAttack) || 20;
+            monster.attack = baseAttack + Math.floor(levelBonus * (baseAttack * 0.15));
+            needsFix = true;
+        }
+        
+        if (!monster.defense) {
+            const level = parseInt(monster.level) || 1;
+            const levelBonus = level - 1;
+            const baseDefense = parseInt(monster.baseDefense) || 15;
+            monster.defense = baseDefense + Math.floor(levelBonus * (baseDefense * 0.1));
+            needsFix = true;
+        }
+        
+        // Ensure HP doesn't exceed maxHP
+        if (parseInt(monster.hp) > parseInt(monster.maxHP)) {
+            monster.hp = monster.maxHP;
+            needsFix = true;
+        }
+        
+        // Ensure HP is never negative
+        if (parseInt(monster.hp) < 0) {
+            monster.hp = 0;
+            needsFix = true;
+        }
+        
+        if (needsFix) {
+            fixedCount++;
+        }
+    });
+    
+    if (fixedCount > 0) {
+        addLog(`🔧 Riparati ${fixedCount} mostri con statistiche errate!`);
+        updateDisplay(); // Refresh the display to show correct values
+    }
 }
 
 // Main exploration function
@@ -140,6 +218,8 @@ function showHelp() {
                 <p><strong>🔄 Fusione:</strong> I duplicati si fondono per potenziare i tuoi mostri</p>
                 <p><strong>💰 Economia:</strong> Guadagna monete catturando e vincendo battaglie</p>
                 <p><strong>⚔️ Strategia:</strong> Usa le battaglie per indebolire i mostri prima di catturarli</p>
+                <p><strong>🔄 Cambio Mostri:</strong> Se un mostro sviene, puoi mandarne un altro in battaglia</p>
+                <p><strong>💀 Game Over:</strong> Se tutti i mostri sono KO, il gioco ricomincia!</p>
                 <p><strong>📊 Probabilità:</strong> 80% mostri, 20% eventi nei primi 7 piani di ogni blocco</p>
             </div>
             <div class="buttons">
@@ -174,6 +254,39 @@ function startFirstEncounter() {
     explore();
 }
 
+// Reset the entire game to initial state
+function resetGame() {
+    // Reset all game state to initial values
+    game.player.money = 100;
+    game.player.pokeballs = 3;
+    game.currentFloor = 1;
+    game.battlesThisBlock = 0;
+    game.monsters = [];
+    game.currentMonster = null;
+    game.battle = {
+        active: false,
+        playerMonster: null,
+        enemyMonster: null,
+        playerHP: 0,
+        enemyHP: 0,
+        turn: 'player',
+        selectedMonster: null
+    };
+    
+    // Clear and reset UI
+    clearUI();
+    updateDisplay();
+    
+    // Show welcome screen
+    showWelcomeEncounter();
+    
+    addLog("🔄 Gioco resettato! Benvenuto di nuovo nella Torre dei Mostri!");
+    addLog("🎯 Obiettivo: Sali il più in alto possibile!");
+    addLog("💡 Piano 1: Primo mostro garantito");
+    addLog("🏪 Piano 5,15,25...: Negozi");
+    addLog("👑 Piano 10,20,30...: Boss");
+}
+
 // Run away from encounter
 function runAway() {
     addLog("🏃 Sei scappato dall'incontro.");
@@ -190,6 +303,17 @@ function runAway() {
     `;
     game.currentMonster = null;
     updateDisplay();
+}
+
+// Check if all monsters are defeated (for game over condition)
+function areAllMonstersDefeated() {
+    if (game.monsters.length === 0) return false; // No monsters means not defeated, just empty
+    return game.monsters.every(monster => (parseInt(monster.hp) || 0) <= 0);
+}
+
+// Get count of available (non-KO) monsters
+function getAvailableMonsterCount() {
+    return game.monsters.filter(monster => (parseInt(monster.hp) || 0) > 0).length;
 }
 
 // Start the game when page loads

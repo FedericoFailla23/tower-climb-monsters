@@ -1,11 +1,19 @@
+// Enhanced battle.js with monster switching and game over mechanics
+
 // Show monster selection for battle
-function showMonsterSelection() {
+function showMonsterSelection(isSwitch = false) {
+    // First, make sure we update the display to reflect current monster states
+    updateDisplay();
+    
     let monsterOptions = '';
     
     game.monsters.forEach((monster, index) => {
         const isSelected = game.battle.selectedMonster === index;
         const level = parseInt(monster.level) || 1;
-        const hp = parseInt(monster.hp) || parseInt(monster.baseHP) || 0;
+        
+        // Make sure we're reading the current HP from the monster object
+        // (which should have been updated during battle)
+        const hp = Math.max(0, parseInt(monster.hp) || 0);
         const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 0;
         const attack = parseInt(monster.attack) || parseInt(monster.baseAttack) || 0;
         const defense = parseInt(monster.defense) || parseInt(monster.baseDefense) || 0;
@@ -15,9 +23,14 @@ function showMonsterSelection() {
         const statusText = canFight ? 'Pronto' : 'KO';
         const statusColor = canFight ? '#4CAF50' : '#f44336';
         
+        // Don't allow selecting the current fighting monster when switching
+        const isCurrentFighter = isSwitch && game.battle.playerMonster && 
+                                 game.battle.playerMonster.originalIndex === index;
+        const isDisabled = !canFight || isCurrentFighter;
+        
         monsterOptions += `
-            <div onclick="${canFight ? `selectMonster(${index})` : ''}" style="
-                cursor: ${canFight ? 'pointer' : 'not-allowed'};
+            <div onclick="${!isDisabled ? `selectMonster(${index})` : ''}" style="
+                cursor: ${!isDisabled ? 'pointer' : 'not-allowed'};
                 border: 2px solid ${isSelected ? '#4CAF50' : (canFight ? 'rgba(255,255,255,0.3)' : '#f44336')};
                 background: ${isSelected ? 'rgba(76,175,80,0.2)' : (canFight ? 'rgba(255,255,255,0.1)' : 'rgba(244,67,54,0.1)')};
                 margin: 8px 0;
@@ -27,12 +40,13 @@ function showMonsterSelection() {
                 align-items: center;
                 gap: 15px;
                 transition: all 0.3s ease;
-                opacity: ${canFight ? '1' : '0.6'};
+                opacity: ${!isDisabled ? '1' : '0.6'};
             ">
                 <span style="font-size: 2em;">${monster.sprite}</span>
                 <div style="flex: 1;">
                     <strong>${monster.name}</strong> <span style="color: #ffd700;">Lv.${level}</span><br>
                     <small style="color: #ccc;">HP: ${hp}/${maxHP} | ATK: ${attack} | DEF: ${defense}</small>
+                    ${isCurrentFighter ? '<br><small style="color: #ff6b6b;">🔄 Attualmente in battaglia</small>' : ''}
                 </div>
                 ${isSelected ? '<span style="color: #4CAF50;">✓ Selezionato</span>' : 
                   `<span style="color: ${statusColor};">${statusText}</span>`}
@@ -40,20 +54,26 @@ function showMonsterSelection() {
         `;
     });
     
+    const title = isSwitch ? "🔄 Cambia Mostro" : "👥 Scegli il Tuo Mostro da Battaglia";
+    const buttonText = isSwitch ? "🔄 Cambia Mostro" : "⚔️ Inizia Battaglia";
+    const actionFunction = isSwitch ? "switchMonster()" : "confirmMonsterAndBattle()";
+    
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
-            <h3>👥 Scegli il Tuo Mostro da Battaglia</h3>
-            <p style="margin: 15px 0; color: #ccc;">Seleziona quale mostro mandare in battaglia:</p>
+            <h3>${title}</h3>
+            <p style="margin: 15px 0; color: #ccc;">
+                ${isSwitch ? 'Il tuo mostro è KO! Scegli un sostituto:' : 'Seleziona quale mostro mandare in battaglia:'}
+            </p>
             
             <div style="max-height: 250px; overflow-y: auto; margin: 15px 0;">
                 ${monsterOptions}
             </div>
             
             <div class="buttons">
-                <button onclick="confirmMonsterAndBattle()" ${game.battle.selectedMonster === null ? 'disabled' : ''}>
-                    ⚔️ Inizia Battaglia
+                <button onclick="${actionFunction}" ${game.battle.selectedMonster === null ? 'disabled' : ''}>
+                    ${buttonText}
                 </button>
-                <button onclick="backToEncounter()">↩️ Torna Indietro</button>
+                ${!isSwitch ? '<button onclick="backToEncounter()">↩️ Torna Indietro</button>' : ''}
             </div>
         </div>
     `;
@@ -69,9 +89,62 @@ function selectMonster(index) {
         return;
     }
     
+    // Don't allow selecting the current fighter when switching
+    if (game.battle.active && game.battle.playerMonster && 
+        game.battle.playerMonster.originalIndex === index) {
+        addLog("❌ Questo mostro è già in battaglia!");
+        return;
+    }
+    
     game.battle.selectedMonster = index;
-    showMonsterSelection(); // Refresh to show selection
+    showMonsterSelection(game.battle.active); // Pass switch flag if battle is active
     addLog(`👥 Hai selezionato ${game.monsters[index].name} per la battaglia!`);
+}
+
+// Switch to a new monster during battle
+function switchMonster() {
+    if (game.battle.selectedMonster === null) {
+        addLog("❌ Devi selezionare un mostro!");
+        return;
+    }
+    
+    const newMonster = game.monsters[game.battle.selectedMonster];
+    if (newMonster.hp <= 0) {
+        addLog("❌ Il mostro selezionato è KO!");
+        game.battle.selectedMonster = null;
+        showMonsterSelection(true);
+        return;
+    }
+    
+    // Switch to the new monster
+    const oldMonsterName = game.battle.playerMonster.name;
+    
+    // Update player monster in battle
+    game.battle.playerMonster = {
+        name: newMonster.name,
+        sprite: newMonster.sprite,
+        level: parseInt(newMonster.level) || 1,
+        hp: parseInt(newMonster.hp) || parseInt(newMonster.maxHP) || 30,
+        maxHP: parseInt(newMonster.maxHP) || parseInt(newMonster.baseHP) || 30,
+        attack: parseInt(newMonster.attack) || parseInt(newMonster.baseAttack) || 20,
+        defense: parseInt(newMonster.defense) || parseInt(newMonster.baseDefense) || 15,
+        captureDate: newMonster.captureDate,
+        originalIndex: game.battle.selectedMonster
+    };
+    
+    game.battle.playerHP = parseInt(newMonster.hp) || 0;
+    game.battle.selectedMonster = null; // Reset selection
+    
+    addLog(`🔄 ${newMonster.name} entra in battaglia per sostituire ${oldMonsterName}!`);
+    
+    // Continue battle
+    game.battle.turn = 'player';
+    showBattleScreen();
+}
+
+// Check if player has any monsters that can fight
+function hasAvailableMonsters() {
+    return game.monsters.some(monster => (parseInt(monster.hp) || 0) > 0);
 }
 
 // Confirm monster selection and start battle
@@ -235,14 +308,92 @@ function enemyAttack() {
     
     addLog(`💥 ${enemyMonster.name} attacca per ${damage} danni!`);
     
-    // Check if player is defeated
+    // IMMEDIATELY update the actual monster's HP in the monsters array
+    const playerMonsterIndex = game.battle.playerMonster.originalIndex;
+    if (playerMonsterIndex !== undefined && game.monsters[playerMonsterIndex]) {
+        game.monsters[playerMonsterIndex].hp = Math.max(0, parseInt(game.battle.playerHP) || 0);
+        
+        // Force update the display immediately so the collection shows correct HP
+        updateDisplay();
+    }
+    
+    // Check if current player monster is defeated
     if (game.battle.playerHP <= 0) {
-        endBattle('defeat');
+        addLog(`💔 ${playerMonster.name} è stato sconfitto...`);
+        
+        // Check if player has any other monsters that can fight
+        if (hasAvailableMonsters()) {
+            addLog("🔄 Devi mandare un altro mostro in battaglia!");
+            game.battle.selectedMonster = null; // Reset selection
+            setTimeout(() => showMonsterSelection(true), 1000); // Show switch screen
+        } else {
+            // Game over - all monsters are defeated
+            setTimeout(() => gameOver(), 1000);
+        }
     } else {
         // Player's turn
         game.battle.turn = 'player';
         showBattleScreen();
     }
+}
+
+// Game over function - reset the game
+function gameOver() {
+    game.battle.active = false;
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter">
+            <h3 style="color: #f44336;">💀 GAME OVER</h3>
+            <span class="monster-sprite" style="opacity: 0.5; filter: grayscale(100%);">☠️</span>
+            <h4 style="color: #f44336;">Tutti i tuoi mostri sono stati sconfitti!</h4>
+            <p style="color: #ff6b6b; margin: 20px 0; line-height: 1.6;">
+                La tua avventura nella Torre dei Mostri si conclude al piano ${game.currentFloor}.<br>
+                Non disperare! Ogni scalata è un'opportunità per migliorare le tue strategie.
+            </p>
+            <div style="background: rgba(244, 67, 54, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">📊 Statistiche Finali:</h4>
+                <p>🏢 Piano Raggiunto: <strong>${game.currentFloor}</strong></p>
+                <p>👹 Mostri Catturati: <strong>${game.monsters.length}</strong></p>
+                <p>💰 Monete Guadagnate: <strong>${game.player.money}</strong></p>
+            </div>
+            <div class="buttons">
+                <button onclick="resetGame()" style="background: linear-gradient(45deg, #4CAF50, #2E7D32);">
+                    🔄 Ricomincia Avventura
+                </button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`💀 GAME OVER! Raggiunto il piano ${game.currentFloor} con ${game.monsters.length} mostri!`);
+}
+
+// Reset the entire game
+function resetGame() {
+    // Reset all game state
+    game.player.money = 100;
+    game.player.pokeballs = 3;
+    game.currentFloor = 1;
+    game.battlesThisBlock = 0;
+    game.monsters = [];
+    game.currentMonster = null;
+    game.battle = {
+        active: false,
+        playerMonster: null,
+        enemyMonster: null,
+        playerHP: 0,
+        enemyHP: 0,
+        turn: 'player',
+        selectedMonster: null
+    };
+    
+    // Clear and reset UI
+    clearUI();
+    updateDisplay();
+    
+    // Show welcome screen
+    showWelcomeEncounter();
+    
+    addLog("🔄 Gioco resettato! Benvenuto di nuovo nella Torre dei Mostri!");
 }
 
 // End battle with result
@@ -251,11 +402,14 @@ function endBattle(result) {
     
     game.battle.active = false;
     
-    // Update player monster's HP after battle
+    // Update player monster's HP after battle and force UI update
     const playerMonsterIndex = game.battle.playerMonster.originalIndex;
     if (playerMonsterIndex !== undefined && game.monsters[playerMonsterIndex]) {
         game.monsters[playerMonsterIndex].hp = Math.max(0, parseInt(game.battle.playerHP) || 0);
         addLog(`📊 ${game.monsters[playerMonsterIndex].name} termina con ${game.monsters[playerMonsterIndex].hp} HP`);
+        
+        // Force update display to show correct HP values
+        updateDisplay();
     }
     
     if (result === 'victory') {
@@ -306,24 +460,6 @@ function endBattle(result) {
                 </div>
             </div>
         `;
-    } else {
-        // Defeat
-        addLog(`💔 ${game.battle.playerMonster.name} è stato sconfitto...`);
-        
-        document.getElementById('encounter-area').innerHTML = `
-            <div class="encounter">
-                <h3 style="color: #ff6b6b;">💔 Sconfitta...</h3>
-                <span class="monster-sprite" style="opacity: 0.5;">😵</span>
-                <h4>${game.battle.playerMonster.name} è stato sconfitto!</h4>
-                <p style="color: #ff6b6b; margin: 15px 0;">Il tuo mostro è KO e ha bisogno di cure!</p>
-                <p style="color: #ccc; font-size: 0.9em;">Visita un negozio per curarlo o trova un'area di riposo!</p>
-                <div class="buttons">
-                    <button onclick="advanceFloor()">➡️ Ritirata - Piano ${game.currentFloor + 1}</button>
-                </div>
-            </div>
-        `;
-        
-        game.currentMonster = null;
     }
     
     updateDisplay();
@@ -333,10 +469,13 @@ function endBattle(result) {
 function runFromBattle() {
     game.battle.active = false;
     
-    // Update player monster's HP when running away
+    // Update player monster's HP when running away and force UI update
     const playerMonsterIndex = game.battle.playerMonster.originalIndex;
     if (playerMonsterIndex !== undefined && game.monsters[playerMonsterIndex]) {
         game.monsters[playerMonsterIndex].hp = Math.max(0, parseInt(game.battle.playerHP) || 0);
+        
+        // Force update display to show correct HP values
+        updateDisplay();
     }
     
     addLog("🏃 Sei scappato dalla battaglia.");

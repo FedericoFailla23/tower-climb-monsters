@@ -1,3 +1,5 @@
+// Enhanced ui.js with reset support and improved notifications
+
 // Add a log message to the game log
 function addLog(message) {
     const log = document.getElementById('game-log');
@@ -94,13 +96,24 @@ function updateCollection() {
         div.className = 'monster-item';
         
         const level = monster.level || 1;
-        const hp = monster.hp || monster.baseHP || 0;
-        const maxHP = monster.maxHP || monster.baseHP || 0;
+        const hp = Math.max(0, parseInt(monster.hp) || 0);
+        const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 0;
         const exp = monster.exp || 0;
         const expToNext = monster.expToNext || 50;
         
-        // Calculate percentages for visual indicators
-        const hpPercentage = maxHP > 0 ? (hp / maxHP) * 100 : 100;
+        // CRITICAL FIX: Ensure maxHP is properly calculated for monsters that don't have it set
+        // This happens with older monsters or monsters that weren't properly initialized
+        let actualMaxHP = maxHP;
+        if (!monster.maxHP && monster.baseHP) {
+            // Recalculate maxHP based on level if it's missing
+            const levelBonus = level - 1;
+            actualMaxHP = parseInt(monster.baseHP) + Math.floor(levelBonus * (parseInt(monster.baseHP) * 0.1));
+            // Update the monster object to prevent future issues
+            monster.maxHP = actualMaxHP;
+        }
+        
+        // Calculate percentages for visual indicators using the corrected maxHP
+        const hpPercentage = actualMaxHP > 0 ? (hp / actualMaxHP) * 100 : 100;
         const expPercentage = expToNext > 0 ? (exp / expToNext) * 100 : 0;
         
         // Determine HP color
@@ -108,6 +121,11 @@ function updateCollection() {
         if (hpPercentage <= 25) hpColor = '#f44336'; // Red
         else if (hpPercentage <= 50) hpColor = '#FF9800'; // Orange
         else if (hpPercentage <= 75) hpColor = '#FFC107'; // Yellow
+        
+        // Special styling for KO monsters
+        const isKO = hp <= 0;
+        const monsterOpacity = isKO ? '0.6' : '1';
+        const monsterBorder = isKO ? '2px solid #f44336' : '';
         
         // Rarity color
         let rarityColor = '#888';
@@ -118,17 +136,21 @@ function updateCollection() {
             case 'Leggendario': rarityColor = '#FF9800'; break;
         }
         
+        div.style.opacity = monsterOpacity;
+        div.style.border = monsterBorder;
+        
         div.innerHTML = `
-            <span class="monster-sprite-small">${monster.sprite}</span>
+            <span class="monster-sprite-small" style="filter: ${isKO ? 'grayscale(100%)' : 'none'};">${monster.sprite}</span>
             <div class="monster-info">
                 <div class="monster-header">
                     <strong>${monster.name}</strong> 
                     <span class="monster-level">Lv.${level}</span>
+                    ${isKO ? '<span style="color: #f44336; font-size: 0.8em; margin-left: 5px;">💀 KO</span>' : ''}
                 </div>
                 <div class="monster-details">
                     <small style="color: ${rarityColor};">${monster.rarity}</small>
                     <div class="hp-bar-container">
-                        <span class="hp-text">HP: ${hp}/${maxHP}</span>
+                        <span class="hp-text">HP: ${hp}/${actualMaxHP}</span>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${hpPercentage}%; background-color: ${hpColor};"></div>
                         </div>
@@ -152,7 +174,43 @@ function updateCollection() {
     });
 }
 
-// Show notification-style messages
+// Enhanced clear UI function for reset functionality
+function clearUI() {
+    const encounterArea = document.getElementById('encounter-area');
+    if (encounterArea) {
+        encounterArea.innerHTML = '';
+    }
+    
+    const gameLog = document.getElementById('game-log');
+    if (gameLog) {
+        gameLog.innerHTML = `
+            <div class="log-entry">🌟 Benvenuto nella Torre dei Mostri!</div>
+            <div class="log-entry">🎯 Obiettivo: Sali il più in alto possibile!</div>
+            <div class="log-entry">💡 Piano 1: Primo mostro garantito</div>
+            <div class="log-entry">🏪 Piano 5,15,25...: Negozi</div>
+            <div class="log-entry">👑 Piano 10,20,30...: Boss</div>
+        `;
+    }
+    
+    // Reset collection display
+    const collection = document.getElementById('monster-collection');
+    if (collection) {
+        collection.innerHTML = `
+            <p style="text-align: center; color: #888; padding: 20px;">
+                Nessun mostro nella squadra...<br>
+                Inizia salendo al Piano 1!
+            </p>
+        `;
+    }
+    
+    // Reset collection count
+    const countElement = document.getElementById('collection-count');
+    if (countElement) {
+        countElement.textContent = '0';
+    }
+}
+
+// Show enhanced notification with game over context
 function showNotification(message, type = 'info', duration = 3000) {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
@@ -185,6 +243,10 @@ function showNotification(message, type = 'info', duration = 3000) {
         case 'warning':
             notification.style.backgroundColor = '#FF9800';
             break;
+        case 'gameover':
+            notification.style.backgroundColor = '#9C27B0';
+            notification.style.border = '2px solid #f44336';
+            break;
         default:
             notification.style.backgroundColor = '#2196F3';
     }
@@ -207,38 +269,36 @@ function showNotification(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
-// Clear all UI elements (useful for resets)
-function clearUI() {
-    const encounterArea = document.getElementById('encounter-area');
-    if (encounterArea) {
-        encounterArea.innerHTML = '';
-    }
-    
-    const gameLog = document.getElementById('game-log');
-    if (gameLog) {
-        gameLog.innerHTML = `
-            <div class="log-entry">🌟 Benvenuto nella Torre dei Mostri!</div>
-            <div class="log-entry">🎯 Obiettivo: Sali il più in alto possibile!</div>
-            <div class="log-entry">💡 Piano 1: Primo mostro garantito</div>
-            <div class="log-entry">🏪 Piano 5,15,25...: Negozi</div>
-            <div class="log-entry">👑 Piano 10,20,30...: Boss</div>
-        `;
-    }
+// Show game over notification
+function showGameOverNotification(floor, monstersCount) {
+    showNotification(`Game Over! Piano ${floor}, ${monstersCount} mostri catturati`, 'gameover', 5000);
 }
 
-// Animate stat changes (optional enhancement)
+// Animate stat changes (enhanced for reset scenarios)
 function animateStatChange(elementId, newValue, oldValue = null) {
     const element = document.getElementById(elementId);
     if (!element) return;
     
+    // Special animation for reset
+    if (oldValue !== null && newValue < oldValue) {
+        element.style.color = '#f44336'; // Red for decrease
+    } else if (oldValue !== null && newValue > oldValue) {
+        element.style.color = '#4CAF50'; // Green for increase
+    }
+    
     // Simple pulse animation for changes
     element.style.transform = 'scale(1.1)';
-    element.style.transition = 'transform 0.2s ease';
+    element.style.transition = 'transform 0.2s ease, color 0.5s ease';
     
     setTimeout(() => {
         element.textContent = newValue;
         element.style.transform = 'scale(1)';
     }, 100);
+    
+    // Reset color after animation
+    setTimeout(() => {
+        element.style.color = ''; // Reset to default
+    }, 1500);
 }
 
 // Format numbers with separators for large values
@@ -251,8 +311,23 @@ function formatNumber(num) {
     return num.toString();
 }
 
+// Show monster status summary (useful for battle preparation)
+function showMonsterStatusSummary() {
+    const healthyCount = game.monsters.filter(m => m.hp === m.maxHP).length;
+    const injuredCount = game.monsters.filter(m => m.hp > 0 && m.hp < m.maxHP).length;
+    const koCount = game.monsters.filter(m => m.hp <= 0).length;
+    
+    if (game.monsters.length === 0) return;
+    
+    let statusMessage = `Squadra: `;
+    if (healthyCount > 0) statusMessage += `${healthyCount} 💚 `;
+    if (injuredCount > 0) statusMessage += `${injuredCount} 🩹 `;
+    if (koCount > 0) statusMessage += `${koCount} 💀`;
+    
+    addLog(`📊 ${statusMessage}`);
+}
+
 // Show loading state during async operations
 function showLoading(show = true) {
-    // No longer using explore button in header, so this is not needed
-    // Function kept for compatibility
+    // Function kept for compatibility - not currently used
 }

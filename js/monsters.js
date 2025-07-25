@@ -437,3 +437,76 @@ function spawnEvent() {
     
     addLog(event.message);
 }
+
+// Fix monsters that don't have proper maxHP calculated
+function fixMonsterStats() {
+    let fixedCount = 0;
+    
+    game.monsters.forEach(monster => {
+        let needsFix = false;
+        
+        // Ensure monster has all required properties
+        if (!monster.level) {
+            monster.level = 1;
+            needsFix = true;
+        }
+        
+        if (!monster.exp) {
+            monster.exp = 0;
+            needsFix = true;
+        }
+        
+        if (!monster.expToNext) {
+            monster.expToNext = Math.floor(50 * Math.pow(1.2, (monster.level || 1) - 1));
+            needsFix = true;
+        }
+        
+        // Fix maxHP calculation if it's missing or incorrect
+        if (!monster.maxHP || monster.maxHP === monster.baseHP) {
+            const level = parseInt(monster.level) || 1;
+            const levelBonus = level - 1;
+            const baseHP = parseInt(monster.baseHP) || 30;
+            
+            monster.maxHP = baseHP + Math.floor(levelBonus * (baseHP * 0.1));
+            needsFix = true;
+        }
+        
+        // Fix attack and defense if they're missing
+        if (!monster.attack) {
+            const level = parseInt(monster.level) || 1;
+            const levelBonus = level - 1;
+            const baseAttack = parseInt(monster.baseAttack) || 20;
+            monster.attack = baseAttack + Math.floor(levelBonus * (baseAttack * 0.15));
+            needsFix = true;
+        }
+        
+        if (!monster.defense) {
+            const level = parseInt(monster.level) || 1;
+            const levelBonus = level - 1;
+            const baseDefense = parseInt(monster.baseDefense) || 15;
+            monster.defense = baseDefense + Math.floor(levelBonus * (baseDefense * 0.1));
+            needsFix = true;
+        }
+        
+        // Ensure HP doesn't exceed maxHP
+        if (parseInt(monster.hp) > parseInt(monster.maxHP)) {
+            monster.hp = monster.maxHP;
+            needsFix = true;
+        }
+        
+        // Ensure HP is never negative
+        if (parseInt(monster.hp) < 0) {
+            monster.hp = 0;
+            needsFix = true;
+        }
+        
+        if (needsFix) {
+            fixedCount++;
+        }
+    });
+    
+    if (fixedCount > 0) {
+        addLog(`🔧 Riparati ${fixedCount} mostri con statistiche errate!`);
+        updateDisplay(); // Refresh the display to show correct values
+    }
+}
