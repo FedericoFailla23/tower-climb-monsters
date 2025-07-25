@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Climb Monsters</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 Tower Climb Monsters</h1>
+        <p class="subtitle">Scala la torre e raccogli mostri leggendari!</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>🏢 Piano</h3>
+                <div id="floor" style="font-size: 1.5em; font-weight: bold;">1</div>
+            </div>
+            <div class="stat-card">
+                <h3>💰 Denaro</h3>
+                <div id="money" style="font-size: 1.2em;">100</div>
+            </div>
+            <div class="stat-card">
+                <h3>🎯 Pokeball</h3>
+                <div id="pokeballs" style="font-size: 1.5em; color: #ff6b6b;">3</div>
+            </div>
+            <div class="stat-card">
+                <h3>👹 Catturati</h3>
+                <div id="caught" style="font-size: 1.5em; color: #4CAF50;">0</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="exploration">
+                <h3>🏢 Torre dei Mostri</h3>
+                
+                <div class="buttons">
+                    <button id="explore-btn" onclick="explore()">🔍 Avanza Piano 1</button>
+                    <button onclick="showHelp()">❓ Aiuto</button>
+                </div>
+                
+                <div id="encounter-area"></div>
+                
+                <div class="log-area">
+                    <div id="game-log">
+                        <div class="log-entry">🌟 Benvenuto nella Torre dei Mostri!</div>
+                        <div class="log-entry">🎯 Obiettivo: Sali il più in alto possibile!</div>
+                        <div class="log-entry">💡 Piano 1: Primo mostro garantito</div>
+                        <div class="log-entry">🏪 Piano 5,15,25...: Negozi</div>
+                        <div class="log-entry">👑 Piano 10,20,30...: Boss</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collection">
+                <h3>👹 La Tua Squadra</h3>
+                <div style="text-align: center; margin-bottom: 15px; font-size: 0.9em; color: #ccc;">
+                    Mostri nella squadra: <span id="collection-count" style="color: #4CAF50; font-weight: bold;">0</span>
+                </div>
+                <div id="monster-collection">
+                    <p style="text-align: center; color: #888; padding: 20px;">
+                        Nessun mostro nella squadra...<br>
+                        Inizia salendo al Piano 1!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script src="js/monsters.js"></script>
+    <script src="js/battle.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

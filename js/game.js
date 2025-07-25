@@ -1,0 +1,138 @@
+// Main game state and core logic
+const game = {
+    player: {
+        money: 100,
+        pokeballs: 3
+    },
+    currentFloor: 1,
+    battlesThisBlock: 0,
+    monsters: [],
+    currentMonster: null,
+    battle: {
+        active: false,
+        playerMonster: null,
+        enemyMonster: null,
+        playerHP: 0,
+        enemyHP: 0,
+        turn: 'player',
+        selectedMonster: null
+    }
+};
+
+// Initialize game
+function initGame() {
+    updateDisplay();
+    addLog("🚀 Torre dei Mostri caricata! Inizia la tua scalata!");
+}
+
+// Main exploration function
+function explore() {
+    if (game.currentMonster) {
+        addLog("⚠️ Devi prima gestire l'incontro attuale!");
+        return;
+    }
+
+    const floorType = getFloorType(game.currentFloor);
+    addLog(`🏢 Piano ${game.currentFloor} - ${floorType.description}`);
+    
+    switch(floorType.type) {
+        case 'guaranteed_catch':
+            spawnGuaranteedCatch();
+            break;
+        case 'boss':
+            spawnBoss();
+            break;
+        case 'shop':
+            spawnShop();
+            break;
+        case 'battle_or_event':
+            const blockStart = Math.floor((game.currentFloor - 1) / 10) * 10 + 1;
+            const positionInBlock = game.currentFloor - blockStart + 1;
+            const battlesNeeded = 2;
+            
+            if (game.battlesThisBlock < battlesNeeded && (positionInBlock >= 8 || Math.random() < 0.6)) {
+                spawnMonster();
+            } else {
+                spawnEvent();
+            }
+            break;
+    }
+    
+    updateDisplay();
+}
+
+// Determine what type of floor this is
+function getFloorType(floor) {
+    if (floor === 1) {
+        return { type: 'guaranteed_catch', description: 'Primo Incontro Garantito' };
+    } else if (floor % 10 === 0) {
+        return { type: 'boss', description: 'Boss Battle!' };
+    } else if (floor % 10 === 5) {
+        return { type: 'shop', description: 'Negozio' };
+    } else {
+        return { type: 'battle_or_event', description: 'Esplorazione' };
+    }
+}
+
+// Floor advancement
+function advanceFloor() {
+    game.currentFloor++;
+    
+    // Reset battle counter for new 10-floor block
+    if ((game.currentFloor - 1) % 10 === 0) {
+        game.battlesThisBlock = 0;
+    }
+    
+    clearEncounter();
+    addLog(`🏢 Sei avanzato al piano ${game.currentFloor}!`);
+}
+
+// Clear current encounter
+function clearEncounter() {
+    document.getElementById('encounter-area').innerHTML = '';
+    game.currentMonster = null;
+    updateDisplay();
+}
+
+// Help system
+function showHelp() {
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #2196F3;">❓ Come Giocare</h3>
+            <span class="monster-sprite">📖</span>
+            <div style="text-align: left; margin: 20px 0;">
+                <p><strong>🎯 Obiettivo:</strong> Sali il più in alto possibile nella Torre dei Mostri!</p>
+                <p><strong>🏢 Piano 1:</strong> Primo mostro garantito facile da catturare</p>
+                <p><strong>🏪 Piano 5,15,25...:</strong> Negozi per comprare Pokeball e curare mostri</p>
+                <p><strong>👑 Piano 10,20,30...:</strong> Boss battle con mostri potenti</p>
+                <p><strong>🔄 Fusione:</strong> I duplicati si fondono per potenziare i tuoi mostri</p>
+                <p><strong>💰 Economia:</strong> Guadagna monete catturando e vincendo battaglie</p>
+                <p><strong>⚔️ Strategia:</strong> Usa le battaglie per indebolire i mostri prima di catturarli</p>
+            </div>
+            <div class="buttons">
+                <button onclick="clearEncounter()">✅ Ho Capito</button>
+            </div>
+        </div>
+    `;
+}
+
+// Run away from encounter
+function runAway() {
+    addLog("🏃 Sei scappato dall'incontro.");
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter">
+            <h3 style="color: #888;">🏃 Ritirata</h3>
+            <span class="monster-sprite">💨</span>
+            <h4 style="color: #ccc;">Sei scappato...</h4>
+            <p style="margin: 15px 0; color: #888;">Hai deciso di non rischiare e sei scappato via!</p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    game.currentMonster = null;
+    updateDisplay();
+}
+
+// Start the game when page loads
+window.addEventListener('load', initGame);
