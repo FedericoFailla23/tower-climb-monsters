@@ -51,14 +51,25 @@ function explore() {
             spawnShop();
             break;
         case 'battle_or_event':
+            // IMPROVED LOGIC: More monsters, fewer events
             const blockStart = Math.floor((game.currentFloor - 1) / 10) * 10 + 1;
             const positionInBlock = game.currentFloor - blockStart + 1;
-            const battlesNeeded = 2;
             
-            if (game.battlesThisBlock < battlesNeeded && (positionInBlock >= 8 || Math.random() < 0.6)) {
-                spawnMonster();
+            // Different logic based on position in block
+            if (positionInBlock <= 7) {
+                // First 7 floors of each block: Prioritize monsters
+                if (Math.random() < 0.8) { // 80% chance for monster
+                    spawnMonster();
+                } else {
+                    spawnEvent();
+                }
             } else {
-                spawnEvent();
+                // Last 2 floors before boss: More events for preparation
+                if (Math.random() < 0.6) { // 60% chance for monster
+                    spawnMonster();
+                } else {
+                    spawnEvent();
+                }
             }
             break;
     }
@@ -86,6 +97,7 @@ function advanceFloor() {
     // Reset battle counter for new 10-floor block
     if ((game.currentFloor - 1) % 10 === 0) {
         game.battlesThisBlock = 0;
+        addLog(`🎯 Nuovo blocco di piani! Preparati per sfide più difficili!`);
     }
     
     clearEncounter();
@@ -128,6 +140,7 @@ function showHelp() {
                 <p><strong>🔄 Fusione:</strong> I duplicati si fondono per potenziare i tuoi mostri</p>
                 <p><strong>💰 Economia:</strong> Guadagna monete catturando e vincendo battaglie</p>
                 <p><strong>⚔️ Strategia:</strong> Usa le battaglie per indebolire i mostri prima di catturarli</p>
+                <p><strong>📊 Probabilità:</strong> 80% mostri, 20% eventi nei primi 7 piani di ogni blocco</p>
             </div>
             <div class="buttons">
                 <button onclick="showWelcomeEncounter()">✅ Ho Capito</button>
@@ -146,11 +159,19 @@ function showWelcomeEncounter() {
             <p style="margin: 15px 0;">Benvenuto nella Torre dei Mostri! Sei pronto per iniziare la tua scalata epica?</p>
             <p style="color: #ffd700; font-size: 0.9em;">💡 Piano 1: Il tuo primo mostro ti aspetta!</p>
             <div class="buttons">
-                <button onclick="explore()">🌟 Inizia al Piano 1</button>
+                <button onclick="startFirstEncounter()">🌟 Inizia al Piano 1</button>
                 <button onclick="showHelp()">❓ Aiuto</button>
             </div>
         </div>
     `;
+}
+
+// Start the first encounter specifically
+function startFirstEncounter() {
+    // Ensure we're at floor 1 and trigger the guaranteed catch
+    game.currentFloor = 1;
+    game.currentMonster = null;
+    explore();
 }
 
 // Run away from encounter

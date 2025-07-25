@@ -43,28 +43,32 @@ function createScaledMonster(baseMonster, level) {
     return scaledMonster;
 }
 
-// Initialize a new caught monster
-function initializeMonster(baseMonster) {
+// Initialize a new caught monster - FIXED to maintain level
+function initializeMonster(wildMonster) {
+    // Get the level from the wild monster, not always 1
+    const caughtLevel = Math.max(1, parseInt(wildMonster.level) || 1);
+    
     const newMonster = {
-        name: baseMonster.name,
-        sprite: baseMonster.sprite,
-        rarity: baseMonster.rarity,
-        catchRate: Math.max(5, parseInt(baseMonster.catchRate) || 50),
-        expValue: Math.max(1, parseInt(baseMonster.expValue) || 10),
-        baseHP: Math.max(1, parseInt(baseMonster.baseHP) || 30),
-        baseAttack: Math.max(1, parseInt(baseMonster.baseAttack) || 20),
-        baseDefense: Math.max(1, parseInt(baseMonster.baseDefense) || 15),
-        level: 1,
-        exp: 0,
-        expToNext: 50,
+        name: wildMonster.name,
+        sprite: wildMonster.sprite,
+        rarity: wildMonster.rarity,
+        catchRate: Math.max(5, parseInt(wildMonster.catchRate) || 50),
+        expValue: Math.max(1, parseInt(wildMonster.expValue) || 10),
+        baseHP: Math.max(1, parseInt(wildMonster.baseHP) || 30),
+        baseAttack: Math.max(1, parseInt(wildMonster.baseAttack) || 20),
+        baseDefense: Math.max(1, parseInt(wildMonster.baseDefense) || 15),
+        level: caughtLevel, // Use the wild monster's level
+        exp: 0, // Start with 0 EXP at current level
+        expToNext: Math.floor(50 * Math.pow(1.2, caughtLevel - 1)), // EXP needed for next level
         captureDate: Date.now()
     };
     
-    // Set initial stats
-    newMonster.maxHP = newMonster.baseHP;
-    newMonster.hp = newMonster.baseHP;
-    newMonster.attack = newMonster.baseAttack;
-    newMonster.defense = newMonster.baseDefense;
+    // Calculate stats based on the caught level
+    const levelBonus = caughtLevel - 1;
+    newMonster.maxHP = newMonster.baseHP + Math.floor(levelBonus * (newMonster.baseHP * 0.1));
+    newMonster.hp = newMonster.maxHP; // Start at full health
+    newMonster.attack = newMonster.baseAttack + Math.floor(levelBonus * (newMonster.baseAttack * 0.15));
+    newMonster.defense = newMonster.baseDefense + Math.floor(levelBonus * (newMonster.baseDefense * 0.1));
     
     return newMonster;
 }
@@ -259,16 +263,18 @@ function attemptCatch() {
         
         if (existingMonster) {
             // MERGE: Convert caught monster to EXP for existing monster
-            const mergeExp = (parseInt(monster.expValue) || 10) * 2;
+            // Give more EXP based on the level of the caught monster
+            const levelMultiplier = Math.max(1, parseInt(monster.level) || 1);
+            const mergeExp = (parseInt(monster.expValue) || 10) * 2 * levelMultiplier;
             giveMonsterExp(existingMonster, mergeExp);
-            addLog(`🔄 ${monster.name} catturato e fuso! (+${moneyReward} monete)`);
+            addLog(`🔄 ${monster.name} Lv.${monster.level} catturato e fuso! (+${moneyReward} monete)`);
             addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione!`);
             showMergeSuccess(monster, existingMonster, mergeExp);
         } else {
-            // NEW MONSTER: Add to collection
+            // NEW MONSTER: Add to collection - MAINTAIN LEVEL
             const newMonster = initializeMonster(monster);
             game.monsters.push(newMonster);
-            addLog(`🎉 ${monster.name} catturato! (+${moneyReward} monete)`);
+            addLog(`🎉 ${monster.name} Lv.${monster.level} catturato! (+${moneyReward} monete)`);
             showCaptureSuccess(newMonster);
         }
         
@@ -295,9 +301,10 @@ function showCaptureSuccess(monster) {
         <div class="encounter">
             <h3 style="color: #4CAF50;">✅ Cattura Riuscita!</h3>
             <span class="monster-sprite">${monster.sprite}</span>
-            <h4>${monster.name}</h4>
+            <h4>${monster.name} Lv.${monster.level}</h4>
             <p style="color: #4CAF50; margin: 15px 0;"><strong>${monster.name}</strong> si è unito alla tua squadra!</p>
             <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
+            <p style="color: #2196F3;">🌟 Mantenuto livello ${monster.level}!</p>
             <div class="buttons">
                 <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
             </div>
@@ -313,7 +320,7 @@ function showMergeSuccess(caughtMonster, existingMonster, mergeExp) {
             <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin: 20px 0;">
                 <div style="text-align: center;">
                     <span style="font-size: 2em;">${caughtMonster.sprite}</span>
-                    <p style="font-size: 0.9em; color: #ccc;">Catturato</p>
+                    <p style="font-size: 0.9em; color: #ccc;">Lv.${caughtMonster.level} Catturato</p>
                 </div>
                 <span style="font-size: 2em; color: #9C27B0;">➕</span>
                 <div style="text-align: center;">
@@ -322,7 +329,7 @@ function showMergeSuccess(caughtMonster, existingMonster, mergeExp) {
                 </div>
                 <span style="font-size: 2em; color: #ffd700;">✨</span>
             </div>
-            <h4>${caughtMonster.name} si è fuso con il tuo team!</h4>
+            <h4>${caughtMonster.name} Lv.${caughtMonster.level} si è fuso con il tuo team!</h4>
             <p style="color: #9C27B0; margin: 15px 0;">Il ${caughtMonster.name} catturato si è unito al tuo ${existingMonster.name}!</p>
             <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
             <p style="color: #9C27B0;">💫 +${mergeExp} EXP per ${existingMonster.name}</p>

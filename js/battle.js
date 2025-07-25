@@ -10,11 +10,16 @@ function showMonsterSelection() {
         const attack = parseInt(monster.attack) || parseInt(monster.baseAttack) || 0;
         const defense = parseInt(monster.defense) || parseInt(monster.baseDefense) || 0;
         
+        // Show if monster is unable to fight
+        const canFight = hp > 0;
+        const statusText = canFight ? 'Pronto' : 'KO';
+        const statusColor = canFight ? '#4CAF50' : '#f44336';
+        
         monsterOptions += `
-            <div onclick="selectMonster(${index})" style="
-                cursor: pointer;
-                border: 2px solid ${isSelected ? '#4CAF50' : 'rgba(255,255,255,0.3)'};
-                background: ${isSelected ? 'rgba(76,175,80,0.2)' : 'rgba(255,255,255,0.1)'};
+            <div onclick="${canFight ? `selectMonster(${index})` : ''}" style="
+                cursor: ${canFight ? 'pointer' : 'not-allowed'};
+                border: 2px solid ${isSelected ? '#4CAF50' : (canFight ? 'rgba(255,255,255,0.3)' : '#f44336')};
+                background: ${isSelected ? 'rgba(76,175,80,0.2)' : (canFight ? 'rgba(255,255,255,0.1)' : 'rgba(244,67,54,0.1)')};
                 margin: 8px 0;
                 padding: 12px;
                 border-radius: 8px;
@@ -22,13 +27,15 @@ function showMonsterSelection() {
                 align-items: center;
                 gap: 15px;
                 transition: all 0.3s ease;
+                opacity: ${canFight ? '1' : '0.6'};
             ">
                 <span style="font-size: 2em;">${monster.sprite}</span>
                 <div style="flex: 1;">
                     <strong>${monster.name}</strong> <span style="color: #ffd700;">Lv.${level}</span><br>
                     <small style="color: #ccc;">HP: ${hp}/${maxHP} | ATK: ${attack} | DEF: ${defense}</small>
                 </div>
-                ${isSelected ? '<span style="color: #4CAF50;">✓ Selezionato</span>' : '<span style="color: #888;">Clicca per selezionare</span>'}
+                ${isSelected ? '<span style="color: #4CAF50;">✓ Selezionato</span>' : 
+                  `<span style="color: ${statusColor};">${statusText}</span>`}
             </div>
         `;
     });
@@ -54,6 +61,14 @@ function showMonsterSelection() {
 
 // Select a monster for battle
 function selectMonster(index) {
+    const monster = game.monsters[index];
+    const hp = parseInt(monster.hp) || 0;
+    
+    if (hp <= 0) {
+        addLog("❌ Questo mostro è KO e non può combattere!");
+        return;
+    }
+    
     game.battle.selectedMonster = index;
     showMonsterSelection(); // Refresh to show selection
     addLog(`👥 Hai selezionato ${game.monsters[index].name} per la battaglia!`);
@@ -65,6 +80,15 @@ function confirmMonsterAndBattle() {
         addLog("❌ Devi selezionare un mostro!");
         return;
     }
+    
+    const selectedMonster = game.monsters[game.battle.selectedMonster];
+    if (selectedMonster.hp <= 0) {
+        addLog("❌ Il mostro selezionato è KO!");
+        game.battle.selectedMonster = null;
+        showMonsterSelection();
+        return;
+    }
+    
     startBattleWithMonster(game.battle.selectedMonster);
 }
 
@@ -72,11 +96,13 @@ function confirmMonsterAndBattle() {
 function startBattleWithMonster(monsterIndex) {
     const playerMonster = game.monsters[monsterIndex];
     
-    // Ensure monster has HP
-    const currentHP = parseInt(playerMonster.hp) || 0;
+    // Use current HP, don't restore it
+    const currentHP = Math.max(0, parseInt(playerMonster.hp) || 0);
     const maxHP = parseInt(playerMonster.maxHP) || parseInt(playerMonster.baseHP) || 30;
+    
     if (currentHP <= 0) {
-        playerMonster.hp = maxHP;
+        addLog("❌ Questo mostro è KO e non può combattere!");
+        return;
     }
     
     // Set up battle monsters with safe number parsing
@@ -84,11 +110,12 @@ function startBattleWithMonster(monsterIndex) {
         name: playerMonster.name,
         sprite: playerMonster.sprite,
         level: parseInt(playerMonster.level) || 1,
-        hp: parseInt(playerMonster.hp) || maxHP,
+        hp: currentHP, // Use current HP, not max HP
         maxHP: maxHP,
         attack: parseInt(playerMonster.attack) || parseInt(playerMonster.baseAttack) || 20,
         defense: parseInt(playerMonster.defense) || parseInt(playerMonster.baseDefense) || 15,
-        captureDate: playerMonster.captureDate
+        captureDate: playerMonster.captureDate,
+        originalIndex: monsterIndex // Track which monster this is
     };
     
     game.battle.enemyMonster = {
@@ -102,12 +129,12 @@ function startBattleWithMonster(monsterIndex) {
     };
     
     // Initialize battle state with safe numbers
-    game.battle.playerHP = parseInt(game.battle.playerMonster.hp) || 0;
+    game.battle.playerHP = currentHP; // Start with current HP
     game.battle.enemyHP = parseInt(game.battle.enemyMonster.hp) || 0;
     game.battle.active = true;
     game.battle.turn = 'player';
     
-    addLog(`⚔️ ${game.battle.playerMonster.name} (Lv.${game.battle.playerMonster.level}) vs ${game.battle.enemyMonster.name} (Lv.${game.battle.enemyMonster.level})!`);
+    addLog(`⚔️ ${game.battle.playerMonster.name} (${currentHP}/${maxHP} HP) vs ${game.battle.enemyMonster.name}!`);
     showBattleScreen();
 }
 
@@ -131,7 +158,7 @@ function showBattleScreen() {
                     <span style="font-size: 2.5em;">${playerMonster.sprite}</span>
                     <p><strong>${playerMonster.name}</strong> (Lv.${playerMonster.level || 1})</p>
                     <div style="background: #333; border-radius: 10px; padding: 5px; margin: 5px 0;">
-                        <div style="background: #4CAF50; height: 8px; border-radius: 5px; width: ${Math.max(0, (playerCurrentHP / playerMaxHP) * 100)}%;"></div>
+                        <div style="background: ${playerCurrentHP > playerMaxHP * 0.5 ? '#4CAF50' : playerCurrentHP > playerMaxHP * 0.25 ? '#FF9800' : '#f44336'}; height: 8px; border-radius: 5px; width: ${Math.max(0, (playerCurrentHP / playerMaxHP) * 100)}%;"></div>
                     </div>
                     <small>HP: ${playerCurrentHP}/${playerMaxHP}</small><br>
                     <small>ATK: ${playerMonster.attack || 0} | DEF: ${playerMonster.defense || 0}</small>
@@ -224,6 +251,13 @@ function endBattle(result) {
     
     game.battle.active = false;
     
+    // Update player monster's HP after battle
+    const playerMonsterIndex = game.battle.playerMonster.originalIndex;
+    if (playerMonsterIndex !== undefined && game.monsters[playerMonsterIndex]) {
+        game.monsters[playerMonsterIndex].hp = Math.max(0, parseInt(game.battle.playerHP) || 0);
+        addLog(`📊 ${game.monsters[playerMonsterIndex].name} termina con ${game.monsters[playerMonsterIndex].hp} HP`);
+    }
+    
     if (result === 'victory') {
         // Calculate rewards with safe number operations
         const enemyExpValue = parseInt(game.battle.enemyMonster.expValue) || parseInt(game.currentMonster.expValue) || 10;
@@ -234,15 +268,27 @@ function endBattle(result) {
         game.player.money = Math.max(0, parseInt(game.player.money) || 0);
         game.player.money += moneyReward;
         
+        // Give EXP to all monsters (not just the one that fought)
         game.monsters.forEach(monster => {
             giveMonsterExp(monster, expReward);
         });
+        
+        // Special boss victory healing
+        const isBoss = game.currentFloor % 10 === 0;
+        if (isBoss) {
+            game.monsters.forEach(monster => {
+                monster.hp = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
+            });
+            addLog(`👑 Vittoria boss! Tutta la squadra è stata curata completamente!`);
+        }
         
         addLog(`🎉 Vittoria! +${moneyReward} monete, +${expReward} EXP a tutti i mostri!`);
         
         // Make enemy easier to catch
         if (game.currentMonster) {
             game.currentMonster.catchRate = Math.min(90, (parseInt(game.currentMonster.catchRate) || 50) + 25);
+            // Restore enemy to full HP for catching
+            game.currentMonster.hp = parseInt(game.currentMonster.maxHP) || 30;
         }
         
         document.getElementById('encounter-area').innerHTML = `
@@ -251,6 +297,7 @@ function endBattle(result) {
                 <span class="monster-sprite">${game.battle.enemyMonster.sprite}</span>
                 <h4>${game.battle.enemyMonster.name} è stato sconfitto!</h4>
                 <p style="color: #4CAF50; margin: 15px 0;">Il mostro è indebolito e più facile da catturare!</p>
+                ${isBoss ? '<p style="color: #ffd700;">👑 Boss sconfitto! Squadra curata!</p>' : ''}
                 <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
                 <p style="color: #4CAF50;">🌟 +${expReward} EXP a tutti i mostri!</p>
                 <div class="buttons">
@@ -268,8 +315,8 @@ function endBattle(result) {
                 <h3 style="color: #ff6b6b;">💔 Sconfitta...</h3>
                 <span class="monster-sprite" style="opacity: 0.5;">😵</span>
                 <h4>${game.battle.playerMonster.name} è stato sconfitto!</h4>
-                <p style="color: #ff6b6b; margin: 15px 0;">Il tuo mostro ha bisogno di riposo...</p>
-                <p style="color: #ccc; font-size: 0.9em;">Forse dovresti visitare un negozio per curarlo!</p>
+                <p style="color: #ff6b6b; margin: 15px 0;">Il tuo mostro è KO e ha bisogno di cure!</p>
+                <p style="color: #ccc; font-size: 0.9em;">Visita un negozio per curarlo o trova un'area di riposo!</p>
                 <div class="buttons">
                     <button onclick="advanceFloor()">➡️ Ritirata - Piano ${game.currentFloor + 1}</button>
                 </div>
@@ -285,6 +332,13 @@ function endBattle(result) {
 // Run from battle
 function runFromBattle() {
     game.battle.active = false;
+    
+    // Update player monster's HP when running away
+    const playerMonsterIndex = game.battle.playerMonster.originalIndex;
+    if (playerMonsterIndex !== undefined && game.monsters[playerMonsterIndex]) {
+        game.monsters[playerMonsterIndex].hp = Math.max(0, parseInt(game.battle.playerHP) || 0);
+    }
+    
     addLog("🏃 Sei scappato dalla battaglia.");
     runAway();
 }
