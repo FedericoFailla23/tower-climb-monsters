@@ -451,15 +451,16 @@ function collectMoney(amount) {
 // Collect pokeball from event
 function collectPokeball() {
     game.player.pokeballs = Math.max(0, parseInt(game.player.pokeballs) || 0);
-    game.player.pokeballs += 1;
+    const pokeballsFound = Math.floor(Math.random() * 3) + 1; // Random 1-3 pokeballs
+    game.player.pokeballs += pokeballsFound;
     
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter help-encounter">
-            <h3 style="color: #E91E63;">🎾 Pokeball Raccolta!</h3>
+            <h3 style="color: #E91E63;">🎾 Pokeball Raccolte!</h3>
             <span class="monster-sprite">🎾</span>
-            <h4>+1 Pokeball</h4>
+            <h4>+${pokeballsFound} Pokeball</h4>
             <p style="color: #E91E63; margin: 15px 0;">
-                Hai raccolto la Pokeball!<br>
+                Hai raccolto ${pokeballsFound} Pokeball!<br>
                 Ora hai <strong>${game.player.pokeballs} Pokeball</strong> totali.
             </p>
             <div class="buttons">
@@ -468,7 +469,7 @@ function collectPokeball() {
         </div>
     `;
     
-    addLog(`🎾 Hai raccolto una Pokeball! Totale: ${game.player.pokeballs}`);
+    addLog(`🎾 Hai raccolto ${pokeballsFound} Pokeball! Totale: ${game.player.pokeballs}`);
     updateDisplay();
 }
 
@@ -758,8 +759,11 @@ function gameOver() {
 
 // Show capture success screen
 function showCaptureSuccess(monster) {
-    // Calculate money reward for display
-    const moneyReward = Math.floor((parseInt(game.currentMonster.expValue) || 10) * 0.8);
+    // Check if monster was defeated in battle (no extra money)
+    const wasDefeatedInBattle = game.currentMonster && game.currentMonster._defeatedInBattle;
+    
+    // Only show money reward if monster wasn't defeated in battle
+    const moneyReward = wasDefeatedInBattle ? 0 : Math.floor((parseInt(game.currentMonster.expValue) || 10) * 0.5);
     
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
@@ -767,7 +771,7 @@ function showCaptureSuccess(monster) {
             <span class="monster-sprite">${monster.sprite}</span>
             <h4>${monster.name} Lv.${monster.level}</h4>
             <p style="color: #4CAF50; margin: 15px 0;"><strong>${monster.name}</strong> si è unito alla tua squadra!</p>
-            <p style="color: #ffd700; font-size: 0.9em;">💰 +${moneyReward} monete</p>
+            ${moneyReward > 0 ? `<p style="color: #ffd700; font-size: 0.9em;">💰 +${moneyReward} monete</p>` : ''}
             <div class="buttons">
                 <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
             </div>
@@ -804,6 +808,16 @@ function showMergeSuccess(caughtMonster, existingMonster, expGained, originalLev
 
 // Show catch failed screen
 function showCatchFailed(monster, chance) {
+    const isBoss = monster.isBoss;
+    const fleeCounter = monster.fleeCounter || 1;
+    
+    let warningText = '';
+    if (isBoss) {
+        warningText = '<p style="color: #f44336; font-weight: bold;">⚠️ Boss! Hai solo una possibilità di cattura!</p>';
+    } else if (fleeCounter > 1) {
+        warningText = `<p style="color: #FF9800; font-weight: bold;">⚠️ Attenzione! ${monster.name} potrebbe scappare presto!</p>`;
+    }
+    
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
             <h3 style="color: #FF9800;">💔 Cattura Fallita</h3>
@@ -813,8 +827,8 @@ function showCatchFailed(monster, chance) {
                 La Pokeball non è riuscita a trattenere ${monster.name}!<br>
                 <small>Probabilità di successo: ${chance}%</small>
             </p>
+            ${warningText}
             <div class="buttons">
-                ${game.monsters.length > 0 ? '<button onclick="showMonsterSelection()">⚔️ Combatti per Indebolirlo</button>' : ''}
                 <button onclick="attemptCatch()">🎯 Riprova</button>
                 <button onclick="runAway()">🏃 Scappa</button>
             </div>
@@ -841,10 +855,13 @@ function showMonsterFled(monster) {
 
 // Enhanced monster spawning with evolution forms after floor 30 (BALANCED)
 function spawnMonster() {
-    // Determine level based on current floor
+    // Determine level based on current floor with improved scaling
     const floorBlock = Math.floor((game.currentFloor - 1) / 10) + 1;
-    const minLevel = Math.max(1, floorBlock * 2 - 1);
-    const maxLevel = floorBlock * 2 + 1;
+    // More aggressive scaling: each 10 floors increases level range more significantly
+    const baseLevel = Math.max(1, floorBlock * 3 - 2); // Increased from *2 to *3
+    const levelRange = Math.max(2, floorBlock + 1); // Increased range per block
+    const minLevel = baseLevel;
+    const maxLevel = baseLevel + levelRange;
     const wildLevel = minLevel + Math.floor(Math.random() * (maxLevel - minLevel + 1));
     
     // Determine rarity and whether to spawn evolved forms

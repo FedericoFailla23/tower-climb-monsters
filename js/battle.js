@@ -259,7 +259,6 @@ function showBattleScreen() {
             <div class="buttons">
                 ${game.battle.turn === 'player' ? `
                     <button onclick="playerAttack()">⚔️ Attacca</button>
-                    ${!game.currentMonster.isBoss ? '<button onclick="attemptCatch()">🎯 Lancia Pokeball</button>' : ''}
                     <button onclick="runFromBattle()">🏃 Scappa</button>
                 ` : ''}
             </div>
@@ -484,6 +483,7 @@ function endBattle(result) {
                 <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
                 <p style="color: #4CAF50;">🌟 +${expReward} EXP a tutti i mostri!</p>
                 <p style="color: #E91E63; font-size: 0.9em;">🎯 Probabilità di cattura: ${calculateCatchChance(game.currentMonster)}%</p>
+                ${isBoss ? '<p style="color: #f44336; font-weight: bold;">⚠️ Boss! Hai solo una possibilità di cattura!</p>' : ''}
                 <div class="buttons">
                     <button onclick="attemptCatch()">🎯 Cattura Ora!</button>
                     <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>

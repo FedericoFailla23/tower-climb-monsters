@@ -2,8 +2,9 @@
 
 // Spawn shop encounter
 function spawnShop() {
-    const pokeballPrice = Math.max(10, Math.floor(game.currentFloor / 5) * 5 + 10);
-    const healPrice = Math.max(5, Math.floor(game.currentFloor / 10) * 5 + 5);
+    const floorBlock = Math.floor((game.currentFloor - 1) / 10) + 1;
+    const pokeballPrice = 25 + (floorBlock - 1) * 25;
+    const healPrice = 50 + (floorBlock - 1) * 50;
     
     // Ensure player money is a valid number
     const currentMoney = Math.max(0, parseInt(game.player.money) || 0);

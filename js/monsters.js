@@ -292,19 +292,42 @@ function evolveMonster(monster) {
     return true;
 }
 
-// Show evolution screen
+// Show evolution screen as a popup overlay
 function showEvolutionScreen(oldName, oldSprite, newMonster) {
-    const encounterArea = document.getElementById('encounter-area');
-    const currentContent = encounterArea.innerHTML;
+    // Create popup overlay
+    const popup = document.createElement('div');
+    popup.id = 'evolution-popup';
+    popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-in;
+    `;
     
-    encounterArea.innerHTML = `
-        <div class="encounter" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 140, 0, 0.3)); border-color: #ffd700;">
-            <h3 style="color: #ffd700;">✨ EVOLUZIONE! ✨</h3>
+    popup.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 140, 0, 0.95));
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease-out;
+        ">
+            <h3 style="color: #ffd700; margin-bottom: 20px; font-size: 1.5em;">✨ EVOLUZIONE! ✨</h3>
             
             <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 30px 0;">
                 <div style="text-align: center;">
                     <span style="font-size: 4em; opacity: 0.7;">${oldSprite}</span>
-                    <p style="color: #ccc; margin-top: 10px;">${oldName}</p>
+                    <p style="color: #333; margin-top: 10px; font-weight: bold;">${oldName}</p>
                 </div>
                 
                 <div style="text-align: center;">
@@ -335,33 +358,66 @@ function showEvolutionScreen(oldName, oldSprite, newMonster) {
                 </div>
             </div>
             
-            <p style="color: #ffd700; font-style: italic;">Il tuo ${oldName} è cresciuto più forte!</p>
+            <p style="color: #ffd700; font-style: italic; margin-bottom: 20px;">Il tuo ${oldName} è cresciuto più forte!</p>
             
-            <div class="buttons">
-                <button onclick="closeEvolutionScreen('${encodeURIComponent(currentContent)}')" 
-                        style="background: linear-gradient(45deg, #ffd700, #ff8c00);">
-                    ✨ Fantastico!
-                </button>
-            </div>
+            <button onclick="closeEvolutionPopup()" 
+                    style="
+                        background: linear-gradient(45deg, #ffd700, #ff8c00);
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        color: #333;
+                        font-weight: bold;
+                        cursor: pointer;
+                        font-size: 1.1em;
+                    ">
+                ✨ Fantastico!
+            </button>
         </div>
     `;
     
-    // Auto-close after 5 seconds
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add popup to page
+    document.body.appendChild(popup);
+    
+    // Auto-close after 4 seconds
     setTimeout(() => {
-        closeEvolutionScreen(encodeURIComponent(currentContent));
-    }, 5000);
+        closeEvolutionPopup();
+    }, 4000);
 }
 
-// Close evolution screen and restore previous content
-function closeEvolutionScreen(encodedContent) {
-    const encounterArea = document.getElementById('encounter-area');
-    try {
-        encounterArea.innerHTML = decodeURIComponent(encodedContent);
-    } catch (e) {
-        // If there's an issue with the encoded content, just update display
-        updateDisplay();
+// Close evolution popup
+function closeEvolutionPopup() {
+    const popup = document.getElementById('evolution-popup');
+    if (popup) {
+        popup.style.animation = 'fadeIn 0.3s ease-in reverse';
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.parentNode.removeChild(popup);
+            }
+        }, 300);
     }
-    updateDisplay();
 }
 
 // Enhanced give experience function with evolution check
@@ -590,7 +646,7 @@ function attemptCatch() {
         
         if (Math.random() * 100 < chance) {
             // Successful catch
-            let moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
+            let moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.5);
             let showMoney = true;
             // If the monster was just defeated in battle, don't give extra money
             if (monster._defeatedInBattle) {
@@ -626,7 +682,23 @@ function attemptCatch() {
             // Failed catch
             addLog(`💔 ${monster.name} è scappato dalla Pokeball! (${chance}% di successo)`);
             
-            if (Math.random() < 0.4) {
+            // Initialize flee counter if not exists
+            if (!monster.fleeCounter) {
+                monster.fleeCounter = 0;
+            }
+            monster.fleeCounter++;
+            
+            // Calculate flee chance based on failed attempts
+            let fleeChance = 0.4; // Base 40% chance
+            if (monster.isBoss) {
+                // Boss: 100% flee chance after first failed attempt
+                fleeChance = 1.0;
+            } else {
+                // Regular monster: increasing flee chance
+                fleeChance = Math.min(0.9, 0.4 + (monster.fleeCounter - 1) * 0.2); // +20% per failed attempt, max 90%
+            }
+            
+            if (Math.random() < fleeChance) {
                 showMonsterFled(monster);
                 game.currentMonster = null;
             } else {
