@@ -95,21 +95,24 @@ function updateCollection() {
         return;
     }
 
-    // Sort monsters by evolution line, then by stage, then by level
+    // Sort monsters by level (descending), then by rarity, then alphabetically
     const sortedMonsters = [...game.monsters].sort((a, b) => {
-        // First sort by evolution line
-        if (a.evolutionLine !== b.evolutionLine) {
-            return a.evolutionLine.localeCompare(b.evolutionLine);
-        }
-        // Then by stage (higher stage first)
-        const stageA = a.stage || 1;
-        const stageB = b.stage || 1;
-        if (stageA !== stageB) return stageB - stageA;
-        // Finally by level (highest first)
-        const levelA = a.level || 1;
-        const levelB = b.level || 1;
-        return levelB - levelA;
+        // First sort by level (highest first)
+        const levelA = parseInt(a.level) || 1;
+        const levelB = parseInt(b.level) || 1;
+        if (levelA !== levelB) return levelB - levelA;
+        
+        // Then by rarity (legendary > rare > non-common > common)
+        const rarityOrder = { 'Leggendario': 4, 'Raro': 3, 'Non Comune': 2, 'Comune': 1 };
+        const rarityA = rarityOrder[a.rarity] || 0;
+        const rarityB = rarityOrder[b.rarity] || 0;
+        if (rarityA !== rarityB) return rarityB - rarityA;
+        
+        // Finally alphabetically by name
+        return a.name.localeCompare(b.name);
     });
+    
+
 
     collection.innerHTML = '';
     sortedMonsters.forEach((monster, index) => {
@@ -127,8 +130,8 @@ function updateCollection() {
         // CRITICAL FIX: Ensure maxHP is properly calculated for monsters that don't have it set
         // This happens with older monsters or monsters that weren't properly initialized
         let actualMaxHP = maxHP;
-        if (!monster.maxHP && monster.baseHP) {
-            // Recalculate maxHP based on level if it's missing
+        if (!monster.maxHP || monster.maxHP === monster.baseHP) {
+            // Recalculate maxHP based on level if it's missing or incorrect
             const levelBonus = level - 1;
             actualMaxHP = parseInt(monster.baseHP) + Math.floor(levelBonus * (parseInt(monster.baseHP) * 0.1));
             // Update the monster object to prevent future issues
@@ -139,11 +142,13 @@ function updateCollection() {
         const hpPercentage = actualMaxHP > 0 ? (hp / actualMaxHP) * 100 : 100;
         const expPercentage = expToNext > 0 ? (exp / expToNext) * 100 : 0;
         
-        // Determine HP color
+
+        
+        // Determine HP color (consistent with battle screen)
         let hpColor = '#4CAF50'; // Green
         if (hpPercentage <= 25) hpColor = '#f44336'; // Red
         else if (hpPercentage <= 50) hpColor = '#FF9800'; // Orange
-        else if (hpPercentage <= 75) hpColor = '#FFC107'; // Yellow
+        else hpColor = '#4CAF50'; // Green (above 50%)
         
         // Special styling for KO monsters
         const isKO = hp <= 0;
@@ -163,7 +168,6 @@ function updateCollection() {
                 <div class="monster-header">
                     <strong>${monster.name}</strong> ${stageIndicator}
                     <span class="monster-level">Lv.${level}</span>
-                    ${isKO ? '<span style="color: #f44336; font-size: 0.8em; margin-left: 5px;">💀 KO</span>' : ''}
                 </div>
                 <div class="monster-details">
                     <div class="hp-bar-container">
@@ -178,6 +182,7 @@ function updateCollection() {
                     </div>
                 </div>
             </div>
+            ${isKO ? '<div style="position: absolute; top: 5px; right: 5px; color: #f44336; font-size: 0.8em; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;">💀 KO</div>' : ''}
         `;
         
         collection.appendChild(div);
@@ -309,11 +314,11 @@ function showMonsterInfoPopup(monster) {
     const hpPercentage = maxHP > 0 ? (hp / maxHP) * 100 : 100;
     const expPercentage = expToNext > 0 ? (exp / expToNext) * 100 : 0;
     
-    // Determine HP color
+    // Determine HP color (consistent with other screens)
     let hpColor = '#4CAF50'; // Green
     if (hpPercentage <= 25) hpColor = '#f44336'; // Red
     else if (hpPercentage <= 50) hpColor = '#FF9800'; // Orange
-    else if (hpPercentage <= 75) hpColor = '#FFC107'; // Yellow
+    else hpColor = '#4CAF50'; // Green (above 50%)
     
     // Rarity color
     let rarityColor = '#888';
@@ -378,7 +383,7 @@ function showMonsterInfoPopup(monster) {
             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
                 <h4 style="color: #4CAF50; margin-bottom: 10px;">❤️ HP</h4>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div style="flex: 1; background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="width: 200px; background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
                         <div style="width: ${hpPercentage}%; height: 100%; background-color: ${hpColor};"></div>
                     </div>
                     <span style="color: white; font-size: 0.9em;">${hp}/${maxHP}</span>
@@ -386,7 +391,7 @@ function showMonsterInfoPopup(monster) {
                 
                 <h4 style="color: #2196F3; margin-bottom: 10px;">🌟 EXP</h4>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                    <div style="flex: 1; background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="width: 200px; background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
                         <div style="width: ${expPercentage}%; height: 100%; background-color: #2196F3;"></div>
                     </div>
                     <span style="color: white; font-size: 0.9em;">${exp}/${expToNext}</span>

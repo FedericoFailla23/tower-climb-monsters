@@ -5,9 +5,27 @@ function showMonsterSelection(isSwitch = false) {
     // First, make sure we update the display to reflect current monster states
     updateDisplay();
     
+    // Sort monsters by level (descending), then by rarity, then alphabetically
+    const sortedMonsters = [...game.monsters].sort((a, b) => {
+        // First sort by level (highest first)
+        const levelA = parseInt(a.level) || 1;
+        const levelB = parseInt(b.level) || 1;
+        if (levelA !== levelB) return levelB - levelA;
+        
+        // Then by rarity (legendary > rare > non-common > common)
+        const rarityOrder = { 'Leggendario': 4, 'Raro': 3, 'Non Comune': 2, 'Comune': 1 };
+        const rarityA = rarityOrder[a.rarity] || 0;
+        const rarityB = rarityOrder[b.rarity] || 0;
+        if (rarityA !== rarityB) return rarityB - rarityA;
+        
+        // Finally alphabetically by name
+        return a.name.localeCompare(b.name);
+    });
+    
     let monsterOptions = '';
     
-    game.monsters.forEach((monster, index) => {
+    sortedMonsters.forEach((monster) => {
+        const index = game.monsters.indexOf(monster); // Get original index for function calls
         const isSelected = game.battle.selectedMonster === index;
         const level = parseInt(monster.level) || 1;
         
@@ -242,7 +260,7 @@ function showBattleScreen() {
                     <span style="font-size: 2.5em;">${enemyMonster.sprite}</span>
                     <p><strong>${enemyMonster.name}</strong> (Lv.${enemyMonster.level || 1})</p>
                     <div style="background: #333; border-radius: 10px; padding: 5px; margin: 5px 0;">
-                        <div style="background: #ff6b6b; height: 8px; border-radius: 5px; width: ${Math.max(0, (enemyCurrentHP / enemyMaxHP) * 100)}%;"></div>
+                        <div style="background: ${enemyCurrentHP > enemyMaxHP * 0.5 ? '#4CAF50' : enemyCurrentHP > enemyMaxHP * 0.25 ? '#FF9800' : '#f44336'}; height: 8px; border-radius: 5px; width: ${Math.max(0, (enemyCurrentHP / enemyMaxHP) * 100)}%;"></div>
                     </div>
                     <small>HP: ${enemyCurrentHP}/${enemyMaxHP}</small><br>
                     <small>ATK: ${enemyMonster.attack || 0} | DEF: ${enemyMonster.defense || 0}</small>

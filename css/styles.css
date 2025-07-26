@@ -223,6 +223,8 @@ button:disabled {
     gap: 18px;
     transition: all 0.3s ease;
     backdrop-filter: blur(3px);
+    overflow: hidden; /* Prevent content from overflowing the card */
+    position: relative; /* For proper positioning of KO indicator */
 }
 
 .monster-item:hover {
@@ -233,6 +235,8 @@ button:disabled {
 
 .monster-info {
     flex: 1;
+    min-width: 0; /* Allow flex item to shrink below content size */
+    overflow: hidden; /* Prevent content overflow */
 }
 
 .monster-header {
@@ -240,16 +244,30 @@ button:disabled {
     align-items: center;
     gap: 10px;
     margin-bottom: 8px;
+    overflow: hidden; /* Prevent text overflow */
+    white-space: nowrap; /* Keep text on one line */
 }
 
 .monster-level {
     color: #ffd700;
     font-weight: bold;
     font-size: 0.9em;
+    flex-shrink: 0; /* Prevent level from shrinking */
+}
+
+.monster-header strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1; /* Take remaining space */
+    min-width: 0; /* Allow shrinking */
 }
 
 .monster-details {
     font-size: 0.85em;
+    width: 100%;
+    max-width: 200px; /* Ensure bars don't exceed this width */
+    overflow: hidden; /* Prevent content from overflowing */
 }
 
 /* Progress bars */
@@ -259,7 +277,9 @@ button:disabled {
     border-radius: 3px;
     margin: 4px 0;
     overflow: hidden;
-    max-width: 200px; /* Prevent bars from getting too long */
+    width: 100%; /* Use full width of container */
+    max-width: 200px; /* Maximum width to prevent bars from getting too wide */
+    box-sizing: border-box; /* Ensure padding/borders are included in width calculation */
 }
 
 .progress-fill {
@@ -270,6 +290,8 @@ button:disabled {
 
 .hp-bar-container, .exp-bar-container {
     margin: 5px 0;
+    width: 100%;
+    max-width: 200px;
 }
 
 .hp-text, .exp-text {
@@ -452,6 +474,14 @@ button:disabled {
         flex-direction: column;
         text-align: center;
         gap: 10px;
+    }
+    
+    .monster-details {
+        max-width: 100%; /* Allow full width on mobile */
+    }
+    
+    .progress-bar {
+        max-width: 100%; /* Allow full width on mobile */
     }
 }
 

@@ -205,6 +205,223 @@ const monsterData = [
         baseDefense: 70,
         stage: 1,
         evolutionLine: "dragon"
+    },
+    
+    // NEW MONSTERS - Additional evolution lines
+    
+    // Stage 1 monsters - New Common → Non Common lines
+    { 
+        name: "Ventolino", 
+        sprite: "💨", 
+        rarity: "Comune", 
+        catchRate: 75, 
+        expValue: 30, 
+        baseHP: 45, 
+        baseAttack: 30, 
+        baseDefense: 30,
+        stage: 1,
+        evolutionLevel: 10,
+        evolutionName: "Uragano",
+        evolutionLine: "wind"
+    },
+    { 
+        name: "Terrino", 
+        sprite: "🌍", 
+        rarity: "Comune", 
+        catchRate: 75, 
+        expValue: 30, 
+        baseHP: 50, 
+        baseAttack: 25, 
+        baseDefense: 40,
+        stage: 1,
+        evolutionLevel: 10,
+        evolutionName: "Terremoto",
+        evolutionLine: "earth"
+    },
+    { 
+        name: "Lucciola", 
+        sprite: "✨", 
+        rarity: "Comune", 
+        catchRate: 75, 
+        expValue: 30, 
+        baseHP: 40, 
+        baseAttack: 35, 
+        baseDefense: 25,
+        stage: 1,
+        evolutionLevel: 10,
+        evolutionName: "Stella",
+        evolutionLine: "light"
+    },
+    
+    // Stage 1 monsters - New Non Common → Rare lines
+    { 
+        name: "Veleno", 
+        sprite: "☠️", 
+        rarity: "Non Comune", 
+        catchRate: 55, 
+        expValue: 60, 
+        baseHP: 55, 
+        baseAttack: 55, 
+        baseDefense: 35,
+        stage: 1,
+        evolutionLevel: 15,
+        evolutionName: "Tossina",
+        evolutionLine: "poison"
+    },
+    { 
+        name: "Metallo", 
+        sprite: "⚙️", 
+        rarity: "Non Comune", 
+        catchRate: 55, 
+        expValue: 60, 
+        baseHP: 65, 
+        baseAttack: 40, 
+        baseDefense: 50,
+        stage: 1,
+        evolutionLevel: 15,
+        evolutionName: "Titanio",
+        evolutionLine: "steel"
+    },
+    { 
+        name: "Psiche", 
+        sprite: "🧠", 
+        rarity: "Non Comune", 
+        catchRate: 55, 
+        expValue: 60, 
+        baseHP: 50, 
+        baseAttack: 60, 
+        baseDefense: 30,
+        stage: 1,
+        evolutionLevel: 15,
+        evolutionName: "Telepatia",
+        evolutionLine: "psychic"
+    },
+    
+    // Stage 1 monster - New Rare → Legendary line
+    { 
+        name: "Ombra", 
+        sprite: "🌑", 
+        rarity: "Raro", 
+        catchRate: 35, 
+        expValue: 120, 
+        baseHP: 65, 
+        baseAttack: 65, 
+        baseDefense: 40,
+        stage: 1,
+        evolutionLevel: 20,
+        evolutionName: "Void",
+        evolutionLine: "dark"
+    },
+    
+    // Stage 2 monsters - New Common evolutions
+    { 
+        name: "Uragano", 
+        sprite: "🌪️", 
+        rarity: "Non Comune", 
+        catchRate: 45, 
+        expValue: 80, 
+        baseHP: 65, 
+        baseAttack: 50, 
+        baseDefense: 40,
+        stage: 2,
+        evolutionLine: "wind",
+        preEvolution: "Ventolino"
+    },
+    { 
+        name: "Terremoto", 
+        sprite: "🌋", 
+        rarity: "Non Comune", 
+        catchRate: 45, 
+        expValue: 80, 
+        baseHP: 75, 
+        baseAttack: 40, 
+        baseDefense: 55,
+        stage: 2,
+        evolutionLine: "earth",
+        preEvolution: "Terrino"
+    },
+    { 
+        name: "Stella", 
+        sprite: "⭐", 
+        rarity: "Non Comune", 
+        catchRate: 45, 
+        expValue: 80, 
+        baseHP: 60, 
+        baseAttack: 55, 
+        baseDefense: 35,
+        stage: 2,
+        evolutionLine: "light",
+        preEvolution: "Lucciola"
+    },
+    
+    // Stage 2 monsters - New Non Common evolutions
+    { 
+        name: "Tossina", 
+        sprite: "💀", 
+        rarity: "Raro", 
+        catchRate: 25, 
+        expValue: 150, 
+        baseHP: 85, 
+        baseAttack: 85, 
+        baseDefense: 55,
+        stage: 2,
+        evolutionLine: "poison",
+        preEvolution: "Veleno"
+    },
+    { 
+        name: "Titanio", 
+        sprite: "🛡️", 
+        rarity: "Raro", 
+        catchRate: 25, 
+        expValue: 150, 
+        baseHP: 100, 
+        baseAttack: 60, 
+        baseDefense: 85,
+        stage: 2,
+        evolutionLine: "steel",
+        preEvolution: "Metallo"
+    },
+    { 
+        name: "Telepatia", 
+        sprite: "🔮", 
+        rarity: "Raro", 
+        catchRate: 25, 
+        expValue: 150, 
+        baseHP: 70, 
+        baseAttack: 90, 
+        baseDefense: 40,
+        stage: 2,
+        evolutionLine: "psychic",
+        preEvolution: "Psiche"
+    },
+    
+    // Stage 2 monster - New Rare evolution
+    { 
+        name: "Void", 
+        sprite: "⚫", 
+        rarity: "Leggendario", 
+        catchRate: 10, 
+        expValue: 300, 
+        baseHP: 100, 
+        baseAttack: 100, 
+        baseDefense: 70,
+        stage: 2,
+        evolutionLine: "dark",
+        preEvolution: "Ombra"
+    },
+    
+    // New Legendary (no evolution)
+    { 
+        name: "Fenice", 
+        sprite: "🦅", 
+        rarity: "Leggendario", 
+        catchRate: 12, 
+        expValue: 280, 
+        baseHP: 95, 
+        baseAttack: 90, 
+        baseDefense: 65,
+        stage: 1,
+        evolutionLine: "phoenix"
     }
 ];
 

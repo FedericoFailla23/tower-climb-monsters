@@ -8,6 +8,7 @@ const game = {
     },
     currentFloor: 1,
     battlesThisBlock: 0,
+    encountersSinceLastMonster: 0, // Track encounters since last monster
     monsters: [],
     currentMonster: null,
     captureHistory: new Set(), // Track all monsters ever caught (for counter)
@@ -28,6 +29,11 @@ function initGame() {
     game.player.money = Math.max(0, parseInt(game.player.money) || 100);
     game.player.pokeballs = Math.max(0, parseInt(game.player.pokeballs) || 5);
     game.currentFloor = Math.max(1, parseInt(game.currentFloor) || 1);
+    
+    // Initialize encounter counter
+    if (!game.encountersSinceLastMonster) {
+        game.encountersSinceLastMonster = 0;
+    }
     
     // Initialize capture history if not exists
     if (!game.captureHistory) {
@@ -206,11 +212,11 @@ function initializeMonster(caughtMonster) {
         exp: 0,
         expToNext: Math.floor(50 * Math.pow(1.2, level - 1)),
         hp: parseInt(caughtMonster.hp) || parseInt(caughtMonster.baseHP) || 30,
-        maxHP: parseInt(caughtMonster.maxHP) || parseInt(caughtMonster.baseHP) || 30,
+        maxHP: parseInt(caughtMonster.maxHP) || (parseInt(caughtMonster.baseHP) || 30) + Math.floor((level - 1) * ((parseInt(caughtMonster.baseHP) || 30) * 0.1)),
         baseHP: parseInt(caughtMonster.baseHP) || 30,
-        attack: parseInt(caughtMonster.attack) || parseInt(caughtMonster.baseAttack) || 20,
+        attack: parseInt(caughtMonster.attack) || (parseInt(caughtMonster.baseAttack) || 20) + Math.floor((level - 1) * ((parseInt(caughtMonster.baseAttack) || 20) * 0.15)),
         baseAttack: parseInt(caughtMonster.baseAttack) || 20,
-        defense: parseInt(caughtMonster.defense) || parseInt(caughtMonster.baseDefense) || 15,
+        defense: parseInt(caughtMonster.defense) || (parseInt(caughtMonster.baseDefense) || 15) + Math.floor((level - 1) * ((parseInt(caughtMonster.baseDefense) || 15) * 0.1)),
         baseDefense: parseInt(caughtMonster.baseDefense) || 15,
         evolutionLine: caughtMonster.evolutionLine || "fire",
         stage: caughtMonster.stage || 1,
@@ -267,7 +273,7 @@ function spawnBoss() {
             <span class="monster-sprite">${monster.sprite}</span>
             <h4>${monster.name} Lv.${bossLevel} (BOSS)</h4>
             <p><strong>Rarità:</strong> ${monster.rarity}</p>
-            <p style="color: #9C27B0; margin: 15px 0;">
+            <p style="color: white; margin: 15px 0;">
                 Un boss potente ti blocca la strada!<br>
                 <strong>⚔️ DEVI SCONFIGGERLO PER PASSARE! ⚔️</strong><br>
                 <small>Vincendo: squadra curata + possibilità di cattura</small>
@@ -286,20 +292,41 @@ function spawnBoss() {
 
 // Spawn event (help or special encounter)
 function spawnEvent() {
+    // Increment encounter counter when event is spawned
+    game.encountersSinceLastMonster++;
+    
     const eventType = Math.random();
     
-    if (eventType < 0.25) {
+    if (eventType < 0.1) {
         // Healing event
         spawnHealingEvent();
-    } else if (eventType < 0.5) {
+    } else if (eventType < 0.2) {
         // Money event
         spawnMoneyEvent();
-    } else if (eventType < 0.75) {
+    } else if (eventType < 0.3) {
         // Pokeball event
         spawnPokeballEvent();
-    } else {
+    } else if (eventType < 0.4) {
         // Scenery event
         spawnSceneryEvent();
+    } else if (eventType < 0.5) {
+        // Small EXP event
+        spawnSmallExpEvent();
+    } else if (eventType < 0.6) {
+        // Large EXP for lowest level monster
+        spawnLargeExpEvent();
+    } else if (eventType < 0.7) {
+        // Damage or heal event
+        spawnDamageOrHealEvent();
+    } else if (eventType < 0.8) {
+        // Mimic event
+        spawnMimicEvent();
+    } else if (eventType < 0.9) {
+        // Mysterious seller
+        spawnMysteriousSellerEvent();
+    } else {
+        // Random treasure event
+        spawnRandomTreasureEvent();
     }
 }
 
@@ -384,6 +411,151 @@ function spawnSceneryEvent() {
     `;
     
     addLog(`🌅 Piano ${game.currentFloor}: Hai goduto di una pausa rilassante con vista panoramica!`);
+}
+
+// Spawn small EXP event for all monsters
+function spawnSmallExpEvent() {
+    const expGained = Math.floor(game.currentFloor * 2); // Scales with floor
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #FF9800;">📚 Scoperta di Conoscenza</h3>
+            <span class="monster-sprite">📖</span>
+            <h4>Libro Antico</h4>
+            <p style="color: #FF9800; margin: 15px 0;">
+                Hai trovato un antico libro di saggezza!<br>
+                Tutti i tuoi mostri guadagnano <strong>${expGained} EXP</strong>!
+            </p>
+            <div class="buttons">
+                <button onclick="gainSmallExp(${expGained})">📚 Studia il Libro</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`📚 Piano ${game.currentFloor}: Hai trovato un libro antico che concede ${expGained} EXP a tutti i mostri!`);
+}
+
+// Spawn large EXP event for lowest level monster
+function spawnLargeExpEvent() {
+    const expGained = Math.floor(game.currentFloor * 8); // Large amount, scales with floor
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #9C27B0;">🌟 Cristallo di Potere</h3>
+            <span class="monster-sprite">💎</span>
+            <h4>Cristallo Magico</h4>
+            <p style="color: white; margin: 15px 0;">
+                Hai trovato un cristallo pulsante di energia!<br>
+                Il tuo mostro di livello più basso guadagna <strong>${expGained} EXP</strong>!
+            </p>
+            <div class="buttons">
+                <button onclick="gainLargeExp(${expGained})">🌟 Usa il Cristallo</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🌟 Piano ${game.currentFloor}: Hai trovato un cristallo di potere che concede ${expGained} EXP al mostro più debole!`);
+}
+
+// Spawn damage or heal event
+function spawnDamageOrHealEvent() {
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #9C27B0;">🧪 Pozione Misteriosa</h3>
+            <span class="monster-sprite">🧪</span>
+            <h4>Pozione Sconosciuta</h4>
+            <p style="color: white; margin: 15px 0;">
+                Hai trovato una pozione di colore strano...<br>
+                Non sai se sia curativa o tossica!<br>
+                <strong>Potrebbe curare o danneggiare tutti i mostri del 25% della vita massima!</strong>
+            </p>
+            <div class="buttons">
+                <button onclick="damageOrHealAll()">🧪 Bevi la Pozione</button>
+                <button onclick="advanceFloor()">➡️ Ignora (Piano ${game.currentFloor + 1})</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🧪 Piano ${game.currentFloor}: Hai trovato una pozione misteriosa di effetto sconosciuto!`);
+}
+
+// Spawn mimic event
+function spawnMimicEvent() {
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #FF9800;">🎭 Mimic del Tesoro</h3>
+            <span class="monster-sprite">🎭</span>
+            <h4>Cofanetto Sospetto</h4>
+            <p style="color: #FF9800; margin: 15px 0;">
+                Hai trovato un cofanetto che sembra un tesoro...<br>
+                Ma potrebbe essere una trappola!<br>
+                <strong>Potrebbe contenere molte monete o rubartene alcune!</strong>
+            </p>
+            <div class="buttons">
+                <button onclick="mimicResult()">🎭 Apri il Cofanetto</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🎭 Piano ${game.currentFloor}: Hai trovato un cofanetto che potrebbe essere un tesoro o una trappola!`);
+}
+
+// Spawn mysterious seller event
+function spawnMysteriousSellerEvent() {
+    const cost = Math.floor(game.currentFloor * 3); // Scales with floor
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #673AB7;">👤 Mercante Misterioso</h3>
+            <span class="monster-sprite">👤</span>
+            <h4>Venditore Strano</h4>
+            <p style="color: white; margin: 15px 0;">
+                Un mercante misterioso ti offre un servizio speciale!<br>
+                Costa <strong>${cost} monete</strong> e potrebbe darti:<br>
+                • 3-5 Pokeball<br>
+                • EXP per tutti i mostri<br>
+                • Cura per tutti i mostri<br>
+                • Niente (trappola!)
+            </p>
+            <div class="buttons">
+                <button onclick="mysteriousSeller(${cost})">👤 Accetta l'Offerta</button>
+                <button onclick="advanceFloor()">➡️ Rifiuta (Piano ${game.currentFloor + 1})</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`👤 Piano ${game.currentFloor}: Hai incontrato un mercante misterioso che offre servizi speciali!`);
+}
+
+// Spawn random treasure event (bonus event)
+function spawnRandomTreasureEvent() {
+    const rewards = [
+        { type: 'pokeballs', amount: Math.floor(Math.random() * 3) + 2, name: 'Pokeball', emoji: '🎾', resultType: 'good' },
+        { type: 'money', amount: Math.floor(game.currentFloor * 8), name: 'Monete', emoji: '💰', resultType: 'good' },
+        { type: 'exp', amount: Math.floor(game.currentFloor * 3), name: 'EXP', emoji: '📚', resultType: 'good' },
+        { type: 'heal', amount: 50, name: 'Cura Completa', emoji: '💚', resultType: 'good' }
+    ];
+    
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    let color = '#fff';
+    if (reward.resultType === 'good') color = '#4CAF50';
+    else if (reward.resultType === 'bad') color = '#FFD600';
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: ${color};">🏆 Tesoro Nascosto</h3>
+            <span class="monster-sprite">🏆</span>
+            <h4>Scoperta Fortunata</h4>
+            <p style="color: ${color}; margin: 15px 0;">
+                Hai trovato un tesoro nascosto!<br>
+                Contiene <strong>${reward.amount} ${reward.name}</strong>!
+            </p>
+            <div class="buttons">
+                <button onclick="collectRandomTreasure('${reward.type}', ${reward.amount})">🏆 Raccogli Tesoro</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🏆 Piano ${game.currentFloor}: Hai trovato un tesoro nascosto con ${reward.amount} ${reward.name}!`);
 }
 
 // Free healing from event
@@ -473,6 +645,298 @@ function collectPokeball() {
     updateDisplay();
 }
 
+// Gain small EXP for all monsters
+function gainSmallExp(expAmount) {
+    let gainedCount = 0;
+    game.monsters.forEach(monster => {
+        if (parseInt(monster.hp) > 0) { // Only give EXP to alive monsters
+            monster.exp = (parseInt(monster.exp) || 0) + expAmount;
+            gainedCount++;
+            
+            // Give EXP and let giveMonsterExp handle level ups
+            giveMonsterExp(monster, expAmount);
+        }
+    });
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #FF9800;">📚 Conoscenza Acquisita!</h3>
+            <span class="monster-sprite">📖</span>
+            <h4>+${expAmount} EXP per ${gainedCount} mostri</h4>
+            <p style="color: #FF9800; margin: 15px 0;">
+                ${gainedCount} mostri hanno studiato il libro antico!<br>
+                Hanno guadagnato ${expAmount} EXP ciascuno!
+            </p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Continua al Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`📚 ${gainedCount} mostri hanno guadagnato ${expAmount} EXP dal libro antico!`);
+    updateDisplay();
+}
+
+// Gain large EXP for lowest level monster
+function gainLargeExp(expAmount) {
+    if (game.monsters.length === 0) {
+        addLog(`❌ Non hai mostri per ricevere l'EXP!`);
+        advanceFloor();
+        return;
+    }
+    
+    // Find the lowest level monster
+    const lowestLevelMonster = game.monsters.reduce((lowest, current) => {
+        return (parseInt(current.level) || 1) < (parseInt(lowest.level) || 1) ? current : lowest;
+    });
+    
+    const originalLevel = parseInt(lowestLevelMonster.level) || 1;
+    
+    // Give EXP and let giveMonsterExp handle level ups
+    giveMonsterExp(lowestLevelMonster, expAmount);
+    
+    const newLevel = parseInt(lowestLevelMonster.level) || 1;
+    const levelGained = newLevel - originalLevel;
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: #9C27B0;">🌟 Potere Acquisito!</h3>
+            <span class="monster-sprite">💎</span>
+            <h4>${lowestLevelMonster.name} Lv.${originalLevel} → Lv.${newLevel}</h4>
+            <p style="color: white; margin: 15px 0;">
+                ${lowestLevelMonster.name} ha assorbito l'energia del cristallo!<br>
+                Ha guadagnato ${expAmount} EXP e ${levelGained > 0 ? `è salito di ${levelGained} livello${levelGained > 1 ? 'i' : ''}!` : 'è rimasto allo stesso livello!'}
+            </p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Continua al Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🌟 ${lowestLevelMonster.name} ha guadagnato ${expAmount} EXP dal cristallo di potere!`);
+    updateDisplay();
+}
+
+// Damage or heal all monsters
+function damageOrHealAll() {
+    // Randomly determine the effect when the potion is drunk
+    const isHeal = Math.random() < 0.5; // 50% chance for heal
+    
+    let affectedCount = 0;
+    game.monsters.forEach(monster => {
+        const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
+        const currentHP = parseInt(monster.hp) || 0;
+        const effectAmount = Math.floor(maxHP * 0.25);
+        
+        if (isHeal) {
+            // Heal 25% of max HP
+            const newHP = Math.min(maxHP, currentHP + effectAmount);
+            monster.hp = newHP;
+            affectedCount++;
+        } else {
+            // Damage 25% of max HP, but don't let them faint
+            const newHP = Math.max(1, currentHP - effectAmount);
+            monster.hp = newHP;
+            affectedCount++;
+        }
+    });
+    
+    let color = isHeal ? '#4CAF50' : '#FFD600';
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: ${color};">${isHeal ? '💚' : '💀'} Pozione ${isHeal ? 'Curativa' : 'Tossica'}!</h3>
+            <span class="monster-sprite">🧪</span>
+            <h4>${isHeal ? 'Cura' : 'Danno'} Applicato</h4>
+            <p style="color: ${color}; margin: 15px 0;">
+                La pozione ha ${isHeal ? 'curato' : 'danneggiato'} ${affectedCount} mostri!<br>
+                ${isHeal ? 'Tutti i mostri si sentono meglio!' : 'I mostri sono stati indeboliti, ma nessuno è svenuto!'}
+            </p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Continua al Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🧪 La pozione ha ${isHeal ? 'curato' : 'danneggiato'} ${affectedCount} mostri!`);
+    updateDisplay();
+}
+
+// Mimic result
+function mimicResult() {
+    const moneyGain = Math.floor(game.currentFloor * 15); // Scales with floor
+    const moneyLoss = Math.floor(game.currentFloor * 5); // Scales with floor
+    const isGain = Math.random() < 0.2; // 20% chance for gain
+    const amount = isGain ? moneyGain : moneyLoss;
+    let resultType = isGain ? 'good' : 'bad';
+    if (isGain) {
+        game.player.money = Math.max(0, parseInt(game.player.money) || 0) + amount;
+    } else {
+        game.player.money = Math.max(0, parseInt(game.player.money) || 0) - amount;
+    }
+    let color = '#fff';
+    if (resultType === 'good') color = '#4CAF50';
+    else if (resultType === 'bad') color = '#FFD600';
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: ${color};">🎭 ${isGain ? 'Tesoro Vero!' : 'Trappola!'}</h3>
+            <span class="monster-sprite">🎭</span>
+            <h4>${isGain ? `+${amount} Monete` : `-${amount} Monete`}</h4>
+            <p style="color: ${color}; margin: 15px 0;">
+                ${isGain ? 'Era un vero tesoro!' : 'Era una trappola!'}<br>
+                ${isGain ? `Hai guadagnato ${amount} monete!` : `Hai perso ${amount} monete!`}<br>
+                Ora hai <strong>${game.player.money} monete</strong>.
+            </p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Continua al Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`🎭 ${isGain ? 'Tesoro vero!' : 'Trappola!'} ${isGain ? `+${amount}` : `-${amount}`} monete. Totale: ${game.player.money}`);
+    updateDisplay();
+}
+
+// Mysterious seller
+function mysteriousSeller(cost) {
+    if (game.player.money < cost) {
+        addLog(`❌ Non hai abbastanza monete per il servizio!`);
+        advanceFloor();
+        return;
+    }
+    
+    game.player.money -= cost;
+    
+    const serviceType = Math.random();
+    let result = '';
+    let reward = '';
+    let resultType = 'good'; // good, bad, neutral
+    
+    if (serviceType < 0.25) {
+        // Pokeballs
+        const pokeballs = Math.floor(Math.random() * 3) + 3; // 3-5 pokeballs
+        game.player.pokeballs += pokeballs;
+        result = 'Pokeball';
+        reward = `+${pokeballs} Pokeball`;
+        resultType = 'good';
+    } else if (serviceType < 0.5) {
+        // EXP for all monsters
+        const expAmount = Math.floor(game.currentFloor * 2);
+        let gainedCount = 0;
+        game.monsters.forEach(monster => {
+            if (parseInt(monster.hp) > 0) {
+                giveMonsterExp(monster, expAmount);
+                gainedCount++;
+            }
+        });
+        result = 'EXP';
+        reward = `+${expAmount} EXP per ${gainedCount} mostri`;
+        resultType = 'good';
+    } else if (serviceType < 0.75) {
+        // Heal all monsters
+        let healedCount = 0;
+        game.monsters.forEach(monster => {
+            const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
+            const currentHP = parseInt(monster.hp) || 0;
+            const healAmount = Math.floor(maxHP * 0.25);
+            const newHP = Math.min(maxHP, currentHP + healAmount);
+            monster.hp = newHP;
+            healedCount++;
+        });
+        result = 'Cura';
+        reward = `Cura del 25% per ${healedCount} mostri`;
+        resultType = 'good';
+    } else {
+        // Nothing (scam)
+        result = 'Niente';
+        reward = 'Il mercante ti ha imbrogliato!';
+        resultType = 'bad';
+    }
+    // Color logic
+    let color = '#fff';
+    if (resultType === 'good') color = '#4CAF50';
+    else if (resultType === 'bad') color = '#FFD600';
+    // else keep white for neutral
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: ${color};">👤 Servizio del Mercante</h3>
+            <span class="monster-sprite">👤</span>
+            <h4>${result}</h4>
+            <p style="color: ${color}; margin: 15px 0;">
+                Il mercante ti ha dato: <strong>${reward}</strong><br>
+                Hai speso ${cost} monete.<br>
+                Ora hai <strong>${game.player.money} monete</strong>.
+            </p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Continua al Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`👤 Mercante: ${reward} (costo: ${cost} monete)`);
+    updateDisplay();
+}
+
+// Collect random treasure
+function collectRandomTreasure(type, amount) {
+    let result = '';
+    let resultType = 'good';
+    switch(type) {
+        case 'pokeballs':
+            game.player.pokeballs += amount;
+            result = `+${amount} Pokeball`;
+            resultType = 'good';
+            break;
+        case 'money':
+            game.player.money += amount;
+            result = `+${amount} monete`;
+            resultType = 'good';
+            break;
+        case 'exp':
+            let gainedCount = 0;
+            game.monsters.forEach(monster => {
+                if (parseInt(monster.hp) > 0) {
+                    giveMonsterExp(monster, amount);
+                    gainedCount++;
+                }
+            });
+            result = `+${amount} EXP per ${gainedCount} mostri`;
+            resultType = 'good';
+            break;
+        case 'heal':
+            let healedCount = 0;
+            game.monsters.forEach(monster => {
+                const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
+                monster.hp = maxHP;
+                healedCount++;
+            });
+            result = `Cura completa per ${healedCount} mostri`;
+            resultType = 'good';
+            break;
+        default:
+            resultType = 'neutral';
+    }
+    let color = '#fff';
+    if (resultType === 'good') color = '#4CAF50';
+    else if (resultType === 'bad') color = '#FFD600';
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter help-encounter">
+            <h3 style="color: ${color};">🏆 Tesoro Raccolto!</h3>
+            <span class="monster-sprite">🏆</span>
+            <h4>${result}</h4>
+            <p style="color: ${color}; margin: 15px 0;">
+                Hai raccolto il tesoro nascosto!<br>
+                <strong>${result}</strong>
+            </p>
+            <div class="buttons">
+                <button onclick="advanceFloor()">➡️ Continua al Piano ${game.currentFloor + 1}</button>
+            </div>
+        </div>
+    `;
+    addLog(`🏆 Tesoro raccolto: ${result}`);
+    updateDisplay();
+}
+
 // Main exploration function
 function explore() {
     console.log(`Exploring floor ${game.currentFloor}...`); // Debug log
@@ -499,21 +963,24 @@ function explore() {
             spawnShop();
             break;
         case 'battle_or_event':
-            // IMPROVED LOGIC: More monsters, fewer events
+            // IMPROVED LOGIC: Reduced monster chances, more events, guaranteed monster every 5 floors
             const blockStart = Math.floor((game.currentFloor - 1) / 10) * 10 + 1;
             const positionInBlock = game.currentFloor - blockStart + 1;
             
+            // Force monster encounter if we haven't had one in 4 floors (excluding floor 1 and bosses)
+            const shouldForceMonster = game.encountersSinceLastMonster >= 4;
+            
             // Different logic based on position in block
             if (positionInBlock <= 7) {
-                // First 7 floors of each block: Prioritize monsters
-                if (Math.random() < 0.8) { // 80% chance for monster
+                // First 7 floors of each block: Reduced monster chance
+                if (shouldForceMonster || Math.random() < 0.6) { // Reduced from 80% to 60%
                     spawnMonster();
                 } else {
                     spawnEvent();
                 }
             } else {
-                // Last 2 floors before boss: More events for preparation
-                if (Math.random() < 0.6) { // 60% chance for monster
+                // Last 2 floors before boss: Even more events for preparation
+                if (shouldForceMonster || Math.random() < 0.4) { // Reduced from 60% to 40%
                     spawnMonster();
                 } else {
                     spawnEvent();
@@ -592,9 +1059,12 @@ function showHelp() {
                 <p><strong>⚔️ Strategia:</strong> Usa le battaglie per indebolire i mostri prima di catturarli</p>
                 <p><strong>🔄 Cambio Mostri:</strong> Se un mostro sviene, puoi mandarne un altro in battaglia</p>
                 <p><strong>💀 Game Over:</strong> Se tutti i mostri sono KO, il gioco ricomincia!</p>
-                <p><strong>📊 Probabilità:</strong> 80% mostri, 20% eventi nei primi 7 piani di ogni blocco</p>
+                <p><strong>📊 Probabilità:</strong> 60% mostri, 40% eventi nei primi 7 piani di ogni blocco</p>
+                <p><strong>📊 Probabilità:</strong> 40% mostri, 60% eventi negli ultimi 2 piani prima del boss</p>
+                <p><strong>🎯 Garantito:</strong> Almeno 1 mostro ogni 5 piani (esclusi piano 1 e boss)</p>
                 <p><strong>🌟 Forme Evolute:</strong> Dopo il piano 30 puoi trovare mostri già evoluti!</p>
                 <p><strong>👑 Boss:</strong> I boss devono essere sconfitti prima di poter essere catturati!</p>
+                <p><strong>🎲 Nuovi Eventi:</strong> Pozioni misteriose, cristalli di potere, mercanti, tesori nascosti!</p>
             </div>
             <div class="buttons">
                 <button onclick="showWelcomeEncounter()">✅ Ho Capito</button>
@@ -660,6 +1130,7 @@ function resetGame() {
     game.player.pokeballs = 3;
     game.currentFloor = 1;
     game.battlesThisBlock = 0;
+    game.encountersSinceLastMonster = 0; // Reset encounter counter
     game.monsters = [];
     game.currentMonster = null;
     game.captureHistory = new Set(); // Clear capture history
@@ -855,6 +1326,9 @@ function showMonsterFled(monster) {
 
 // Enhanced monster spawning with evolution forms after floor 30 (BALANCED)
 function spawnMonster() {
+    // Reset encounter counter when monster is spawned
+    game.encountersSinceLastMonster = 0;
+    
     // Determine level based on current floor with improved scaling
     const floorBlock = Math.floor((game.currentFloor - 1) / 10) + 1;
     // More aggressive scaling: each 10 floors increases level range more significantly
