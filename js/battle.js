@@ -259,7 +259,7 @@ function showBattleScreen() {
             <div class="buttons">
                 ${game.battle.turn === 'player' ? `
                     <button onclick="playerAttack()">⚔️ Attacca</button>
-                    <button onclick="attemptCatch()">🎯 Lancia Pokeball</button>
+                    ${!game.currentMonster.isBoss ? '<button onclick="attemptCatch()">🎯 Lancia Pokeball</button>' : ''}
                     <button onclick="runFromBattle()">🏃 Scappa</button>
                 ` : ''}
             </div>
@@ -275,8 +275,22 @@ function playerAttack() {
     const playerAttackStat = parseInt(playerMonster.attack) || 30;
     const enemyDefense = parseInt(enemyMonster.defense) || 20;
     
-    // Calculate damage with safe number operations
-    const damage = Math.max(1, Math.floor(playerAttackStat - enemyDefense / 2 + Math.random() * 10));
+    // Calculate damage with improved formula that accounts for level differences
+    const playerLevel = parseInt(playerMonster.level) || 1;
+    const enemyLevel = parseInt(enemyMonster.level) || 1;
+    const levelDiff = playerLevel - enemyLevel;
+    
+    // Base damage calculation with level scaling - reduced defense effectiveness
+    let baseDamage = Math.max(1, Math.floor(playerAttackStat - enemyDefense / 4));
+    
+    // Level advantage/disadvantage modifier (max ±50%)
+    const levelModifier = Math.max(0.5, Math.min(1.5, 1 + (levelDiff * 0.1)));
+    baseDamage = Math.floor(baseDamage * levelModifier);
+    
+    // Add some randomness (±20%)
+    const randomFactor = 0.8 + (Math.random() * 0.4);
+    const damage = Math.max(1, Math.floor(baseDamage * randomFactor));
+    
     game.battle.enemyHP = Math.max(0, (parseInt(game.battle.enemyHP) || 0) - damage);
     
     addLog(`⚔️ ${playerMonster.name} attacca per ${damage} danni!`);
@@ -302,8 +316,22 @@ function enemyAttack() {
     const enemyAttackStat = parseInt(enemyMonster.attack) || 25;
     const playerDefense = parseInt(playerMonster.defense) || 20;
     
-    // Calculate damage with safe number operations
-    const damage = Math.max(1, Math.floor(enemyAttackStat - playerDefense / 2 + Math.random() * 8));
+    // Calculate damage with improved formula that accounts for level differences
+    const playerLevel = parseInt(playerMonster.level) || 1;
+    const enemyLevel = parseInt(enemyMonster.level) || 1;
+    const levelDiff = enemyLevel - playerLevel;
+    
+    // Base damage calculation with level scaling - reduced defense effectiveness
+    let baseDamage = Math.max(1, Math.floor(enemyAttackStat - playerDefense / 4));
+    
+    // Level advantage/disadvantage modifier (max ±25%)
+    const levelModifier = Math.max(0.25, Math.min(1.5, 1 + (levelDiff * 0.1)));
+    baseDamage = Math.floor(baseDamage * levelModifier);
+    
+    // Add some randomness (±20%)
+    const randomFactor = 0.8 + (Math.random() * 0.4);
+    const damage = Math.max(1, Math.floor(baseDamage * randomFactor));
+    
     game.battle.playerHP = Math.max(0, (parseInt(game.battle.playerHP) || 0) - damage);
     
     addLog(`💥 ${enemyMonster.name} attacca per ${damage} danni!`);
@@ -443,8 +471,9 @@ function endBattle(result) {
             game.currentMonster.catchRate = Math.min(90, (parseInt(game.currentMonster.catchRate) || 50) + 25);
             // Restore enemy to full HP for catching
             game.currentMonster.hp = parseInt(game.currentMonster.maxHP) || 30;
+            // Mark as defeated in battle to prevent double money
+            game.currentMonster._defeatedInBattle = true;
         }
-        
         document.getElementById('encounter-area').innerHTML = `
             <div class="encounter">
                 <h3 style="color: #4CAF50;">🏆 Vittoria!</h3>
@@ -454,8 +483,9 @@ function endBattle(result) {
                 ${isBoss ? '<p style="color: #ffd700;">👑 Boss sconfitto! Squadra curata!</p>' : ''}
                 <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
                 <p style="color: #4CAF50;">🌟 +${expReward} EXP a tutti i mostri!</p>
+                <p style="color: #E91E63; font-size: 0.9em;">🎯 Probabilità di cattura: ${calculateCatchChance(game.currentMonster)}%</p>
                 <div class="buttons">
-                    <button onclick="attemptCatch()">🎯 Cattura Ora! (+25% successo)</button>
+                    <button onclick="attemptCatch()">🎯 Cattura Ora!</button>
                     <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
                 </div>
             </div>

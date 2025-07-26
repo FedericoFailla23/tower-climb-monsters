@@ -544,6 +544,21 @@ function spawnMonster() {
     addLog(`🎯 Piano ${game.currentFloor}: ${monster.name} Lv.${wildLevel} (${monster.rarity})${stageText}`);
 }
 
+// Calculate catch chance for display
+function calculateCatchChance(monster) {
+    let chance = parseInt(monster.catchRate) || 50;
+    
+    // Special case: Floor 1 guaranteed catch should always be 100%
+    if (game.currentFloor === 1 && monster.catchRate === 100) {
+        return 100;
+    } else {
+        // Find existing monster in same evolution line for duplicate penalty
+        const sameLineMonsters = game.monsters.filter(m => m.evolutionLine === monster.evolutionLine);
+        chance -= sameLineMonsters.length * 8;
+        return Math.max(10, Math.min(95, chance));
+    }
+}
+
 // Enhanced attempt catch with evolution line merging
 function attemptCatch() {
     console.log("attemptCatch called"); // Debug log
@@ -569,46 +584,43 @@ function attemptCatch() {
         initializeCaptureHistory();
         
         // Calculate catch chance
-        let chance = parseInt(monster.catchRate) || 50;
-        
-        // Find existing monster in same evolution line for duplicate penalty
-        const sameLineMonsters = game.monsters.filter(m => m.evolutionLine === monster.evolutionLine);
-        chance -= sameLineMonsters.length * 8;
-        chance = Math.max(10, Math.min(95, chance));
+        let chance = calculateCatchChance(monster);
         
         console.log("Catch chance:", chance); // Debug log
         
         if (Math.random() * 100 < chance) {
             // Successful catch
-            const moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
-            
+            let moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
+            let showMoney = true;
+            // If the monster was just defeated in battle, don't give extra money
+            if (monster._defeatedInBattle) {
+                moneyReward = 0;
+                showMoney = false;
+            }
             // Ensure money is a valid number before adding
             game.player.money = Math.max(0, parseInt(game.player.money) || 0);
             game.player.money += moneyReward;
-            
             // Add to capture history
             game.captureHistory.add(monster.name);
-            
             // Find existing monster in same evolution line
             const existingMonster = game.monsters.find(m => m.evolutionLine === monster.evolutionLine);
-            
             if (existingMonster) {
                 // MERGE: Convert caught monster to EXP for existing monster
                 const levelMultiplier = Math.max(1, parseInt(monster.level) || 1);
                 const mergeExp = (parseInt(monster.expValue) || 10) * 2 * levelMultiplier;
-                
+                // Store original level before merging
+                const originalLevel = existingMonster.level;
                 giveMonsterExp(existingMonster, mergeExp);
-                addLog(`🔄 ${monster.name} Lv.${monster.level} catturato e fuso con ${existingMonster.name}! (+${moneyReward} monete)`);
+                addLog(`🔄 ${monster.name} Lv.${monster.level} catturato e fuso con ${existingMonster.name}!${showMoney ? ` (+${moneyReward} monete)` : ''}`);
                 addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione!`);
-                showMergeSuccess(monster, existingMonster, mergeExp);
+                showMergeSuccess(monster, existingMonster, mergeExp, originalLevel, showMoney ? moneyReward : null);
             } else {
                 // NEW MONSTER: Add to collection - MAINTAIN LEVEL
                 const newMonster = initializeMonster(monster);
                 game.monsters.push(newMonster);
-                addLog(`🎉 ${monster.name} Lv.${monster.level} catturato! (+${moneyReward} monete)`);
+                addLog(`🎉 ${monster.name} Lv.${monster.level} catturato!${showMoney ? ` (+${moneyReward} monete)` : ''}`);
                 showCaptureSuccess(newMonster);
             }
-            
             game.currentMonster = null;
         } else {
             // Failed catch
