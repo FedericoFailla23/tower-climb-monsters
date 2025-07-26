@@ -1,79 +1,370 @@
-// Monster database with base stats
+// Enhanced monster database with evolution system
 const monsterData = [
-    { name: "Fiammella", sprite: "🔥", rarity: "Comune", catchRate: 75, expValue: 30, baseHP: 45, baseAttack: 35, baseDefense: 25 },
-    { name: "Gocciolina", sprite: "💧", rarity: "Comune", catchRate: 75, expValue: 30, baseHP: 50, baseAttack: 30, baseDefense: 30 },
-    { name: "Fogliolino", sprite: "🌿", rarity: "Comune", catchRate: 75, expValue: 30, baseHP: 55, baseAttack: 25, baseDefense: 35 },
-    { name: "Sassetto", sprite: "🗿", rarity: "Non Comune", catchRate: 55, expValue: 60, baseHP: 70, baseAttack: 45, baseDefense: 55 },
-    { name: "Scintilla", sprite: "⚡", rarity: "Non Comune", catchRate: 55, expValue: 60, baseHP: 60, baseAttack: 55, baseDefense: 35 },
-    { name: "Cristallo", sprite: "❄️", rarity: "Non Comune", catchRate: 55, expValue: 60, baseHP: 65, baseAttack: 50, baseDefense: 45 },
-    { name: "Fantasma", sprite: "👻", rarity: "Raro", catchRate: 35, expValue: 120, baseHP: 80, baseAttack: 70, baseDefense: 40 },
-    { name: "Drago Stellare", sprite: "🐉", rarity: "Leggendario", catchRate: 15, expValue: 250, baseHP: 120, baseAttack: 95, baseDefense: 75 }
+    // Stage 1 monsters
+    { 
+        name: "Fiammella", 
+        sprite: "🔥", 
+        rarity: "Comune", 
+        catchRate: 75, 
+        expValue: 30, 
+        baseHP: 45, 
+        baseAttack: 35, 
+        baseDefense: 25,
+        stage: 1,
+        evolutionLevel: 10,
+        evolutionName: "Inferno",
+        evolutionLine: "fire"
+    },
+    { 
+        name: "Gocciolina", 
+        sprite: "💧", 
+        rarity: "Comune", 
+        catchRate: 75, 
+        expValue: 30, 
+        baseHP: 50, 
+        baseAttack: 30, 
+        baseDefense: 30,
+        stage: 1,
+        evolutionLevel: 10,
+        evolutionName: "Maremoto",
+        evolutionLine: "water"
+    },
+    { 
+        name: "Fogliolino", 
+        sprite: "🌿", 
+        rarity: "Comune", 
+        catchRate: 75, 
+        expValue: 30, 
+        baseHP: 55, 
+        baseAttack: 25, 
+        baseDefense: 35,
+        stage: 1,
+        evolutionLevel: 10,
+        evolutionName: "Foresta",
+        evolutionLine: "grass"
+    },
+    { 
+        name: "Sassetto", 
+        sprite: "🗿", 
+        rarity: "Non Comune", 
+        catchRate: 55, 
+        expValue: 60, 
+        baseHP: 70, 
+        baseAttack: 45, 
+        baseDefense: 55,
+        stage: 1,
+        evolutionLevel: 15,
+        evolutionName: "Montagna",
+        evolutionLine: "rock"
+    },
+    { 
+        name: "Scintilla", 
+        sprite: "⚡", 
+        rarity: "Non Comune", 
+        catchRate: 55, 
+        expValue: 60, 
+        baseHP: 60, 
+        baseAttack: 55, 
+        baseDefense: 35,
+        stage: 1,
+        evolutionLevel: 15,
+        evolutionName: "Tempesta",
+        evolutionLine: "electric"
+    },
+    { 
+        name: "Cristallo", 
+        sprite: "❄️", 
+        rarity: "Non Comune", 
+        catchRate: 55, 
+        expValue: 60, 
+        baseHP: 65, 
+        baseAttack: 50, 
+        baseDefense: 45,
+        stage: 1,
+        evolutionLevel: 15,
+        evolutionName: "Blizzard",
+        evolutionLine: "ice"
+    },
+    { 
+        name: "Fantasma", 
+        sprite: "👻", 
+        rarity: "Raro", 
+        catchRate: 35, 
+        expValue: 120, 
+        baseHP: 80, 
+        baseAttack: 70, 
+        baseDefense: 40,
+        stage: 1,
+        evolutionLevel: 20,
+        evolutionName: "Spettro",
+        evolutionLine: "ghost"
+    },
+    
+    // Stage 2 monsters (evolutions)
+    { 
+        name: "Inferno", 
+        sprite: "🌋", 
+        rarity: "Non Comune", 
+        catchRate: 45, 
+        expValue: 80, 
+        baseHP: 75, 
+        baseAttack: 65, 
+        baseDefense: 40,
+        stage: 2,
+        evolutionLine: "fire",
+        preEvolution: "Fiammella"
+    },
+    { 
+        name: "Maremoto", 
+        sprite: "🌊", 
+        rarity: "Non Comune", 
+        catchRate: 45, 
+        expValue: 80, 
+        baseHP: 85, 
+        baseAttack: 55, 
+        baseDefense: 50,
+        stage: 2,
+        evolutionLine: "water",
+        preEvolution: "Gocciolina"
+    },
+    { 
+        name: "Foresta", 
+        sprite: "🌳", 
+        rarity: "Non Comune", 
+        catchRate: 45, 
+        expValue: 80, 
+        baseHP: 90, 
+        baseAttack: 45, 
+        baseDefense: 60,
+        stage: 2,
+        evolutionLine: "grass",
+        preEvolution: "Fogliolino"
+    },
+    { 
+        name: "Montagna", 
+        sprite: "🏔️", 
+        rarity: "Raro", 
+        catchRate: 25, 
+        expValue: 150, 
+        baseHP: 110, 
+        baseAttack: 75, 
+        baseDefense: 85,
+        stage: 2,
+        evolutionLine: "rock",
+        preEvolution: "Sassetto"
+    },
+    { 
+        name: "Tempesta", 
+        sprite: "🌩️", 
+        rarity: "Raro", 
+        catchRate: 25, 
+        expValue: 150, 
+        baseHP: 95, 
+        baseAttack: 90, 
+        baseDefense: 55,
+        stage: 2,
+        evolutionLine: "electric",
+        preEvolution: "Scintilla"
+    },
+    { 
+        name: "Blizzard", 
+        sprite: "🌨️", 
+        rarity: "Raro", 
+        catchRate: 25, 
+        expValue: 150, 
+        baseHP: 100, 
+        baseAttack: 80, 
+        baseDefense: 70,
+        stage: 2,
+        evolutionLine: "ice",
+        preEvolution: "Cristallo"
+    },
+    { 
+        name: "Spettro", 
+        sprite: "🌙", 
+        rarity: "Leggendario", 
+        catchRate: 10, 
+        expValue: 300, 
+        baseHP: 130, 
+        baseAttack: 110, 
+        baseDefense: 65,
+        stage: 2,
+        evolutionLine: "ghost",
+        preEvolution: "Fantasma"
+    },
+    
+    // Drago Stellare (no evolution, legendary)
+    { 
+        name: "Drago Stellare", 
+        sprite: "🐉", 
+        rarity: "Leggendario", 
+        catchRate: 15, 
+        expValue: 250, 
+        baseHP: 120, 
+        baseAttack: 95, 
+        baseDefense: 75,
+        stage: 1,
+        evolutionLine: "dragon"
+    }
 ];
 
-// Create a scaled monster based on level
-function createScaledMonster(baseMonster, level) {
-    // Ensure level is a valid number
-    const safeLevel = Math.max(1, parseInt(level) || 1);
-    
-    const scaledMonster = {
-        name: baseMonster.name,
-        sprite: baseMonster.sprite,
-        rarity: baseMonster.rarity,
-        catchRate: Math.max(5, parseInt(baseMonster.catchRate) || 50),
-        expValue: Math.max(1, parseInt(baseMonster.expValue) || 10),
-        baseHP: Math.max(1, parseInt(baseMonster.baseHP) || 30),
-        baseAttack: Math.max(1, parseInt(baseMonster.baseAttack) || 20),
-        baseDefense: Math.max(1, parseInt(baseMonster.baseDefense) || 15),
-        level: safeLevel
-    };
-    
-    // Calculate stats based on level - ensure all values are numbers
-    const levelBonus = safeLevel - 1;
-    scaledMonster.maxHP = scaledMonster.baseHP + Math.floor(levelBonus * (scaledMonster.baseHP * 0.1));
-    scaledMonster.hp = scaledMonster.maxHP;
-    scaledMonster.attack = scaledMonster.baseAttack + Math.floor(levelBonus * (scaledMonster.baseAttack * 0.15));
-    scaledMonster.defense = scaledMonster.baseDefense + Math.floor(levelBonus * (scaledMonster.baseDefense * 0.1));
-    
-    // Scale EXP reward based on level - ensure it's a number
-    scaledMonster.expValue = Math.floor(scaledMonster.expValue * (1 + (safeLevel - 1) * 0.2));
-    
-    // Slightly reduce catch rate for higher level monsters
-    scaledMonster.catchRate = Math.max(5, scaledMonster.catchRate - (safeLevel - 1) * 2);
-    
-    return scaledMonster;
+// Get monster data by name
+function getMonsterByName(name) {
+    return monsterData.find(m => m.name === name);
 }
 
-// Initialize a new caught monster - FIXED to maintain level
-function initializeMonster(wildMonster) {
-    // Get the level from the wild monster, not always 1
-    const caughtLevel = Math.max(1, parseInt(wildMonster.level) || 1);
-    
-    const newMonster = {
-        name: wildMonster.name,
-        sprite: wildMonster.sprite,
-        rarity: wildMonster.rarity,
-        catchRate: Math.max(5, parseInt(wildMonster.catchRate) || 50),
-        expValue: Math.max(1, parseInt(wildMonster.expValue) || 10),
-        baseHP: Math.max(1, parseInt(wildMonster.baseHP) || 30),
-        baseAttack: Math.max(1, parseInt(wildMonster.baseAttack) || 20),
-        baseDefense: Math.max(1, parseInt(wildMonster.baseDefense) || 15),
-        level: caughtLevel, // Use the wild monster's level
-        exp: 0, // Start with 0 EXP at current level
-        expToNext: Math.floor(50 * Math.pow(1.2, caughtLevel - 1)), // EXP needed for next level
-        captureDate: Date.now()
-    };
-    
-    // Calculate stats based on the caught level
-    const levelBonus = caughtLevel - 1;
-    newMonster.maxHP = newMonster.baseHP + Math.floor(levelBonus * (newMonster.baseHP * 0.1));
-    newMonster.hp = newMonster.maxHP; // Start at full health
-    newMonster.attack = newMonster.baseAttack + Math.floor(levelBonus * (newMonster.baseAttack * 0.15));
-    newMonster.defense = newMonster.baseDefense + Math.floor(levelBonus * (newMonster.baseDefense * 0.1));
-    
-    return newMonster;
+// Get all monsters in an evolution line
+function getEvolutionLine(evolutionLine) {
+    return monsterData.filter(m => m.evolutionLine === evolutionLine);
 }
 
-// Give experience to a monster
+// Get pre-evolution of a monster
+function getPreEvolution(monster) {
+    if (monster.preEvolution) {
+        return getMonsterByName(monster.preEvolution);
+    }
+    return null;
+}
+
+// Get evolution of a monster
+function getEvolution(monster) {
+    if (monster.evolutionName) {
+        return getMonsterByName(monster.evolutionName);
+    }
+    return null;
+}
+
+// Check if monster can evolve at current level
+function canEvolve(monster) {
+    if (!monster.evolutionLevel || !monster.evolutionName) return false;
+    const currentLevel = parseInt(monster.level) || 1;
+    return currentLevel >= monster.evolutionLevel;
+}
+
+// Evolve a monster
+function evolveMonster(monster) {
+    if (!canEvolve(monster)) return false;
+    
+    const evolution = getEvolution(monster);
+    if (!evolution) return false;
+    
+    const oldName = monster.name;
+    const oldSprite = monster.sprite;
+    
+    // Update monster to evolved form
+    monster.name = evolution.name;
+    monster.sprite = evolution.sprite;
+    monster.rarity = evolution.rarity;
+    monster.catchRate = evolution.catchRate;
+    monster.expValue = evolution.expValue;
+    monster.baseHP = evolution.baseHP;
+    monster.baseAttack = evolution.baseAttack;
+    monster.baseDefense = evolution.baseDefense;
+    monster.stage = evolution.stage;
+    monster.evolutionLevel = evolution.evolutionLevel;
+    monster.evolutionName = evolution.evolutionName;
+    monster.preEvolution = evolution.preEvolution;
+    
+    // Recalculate stats based on current level
+    const currentLevel = parseInt(monster.level) || 1;
+    const levelBonus = currentLevel - 1;
+    const oldMaxHP = parseInt(monster.maxHP) || 0;
+    const wasFullHP = (parseInt(monster.hp) || 0) >= oldMaxHP;
+    
+    monster.maxHP = monster.baseHP + Math.floor(levelBonus * (monster.baseHP * 0.1));
+    monster.attack = monster.baseAttack + Math.floor(levelBonus * (monster.baseAttack * 0.15));
+    monster.defense = monster.baseDefense + Math.floor(levelBonus * (monster.baseDefense * 0.1));
+    
+    // If monster was at full health, keep it at full health with new maxHP
+    if (wasFullHP) {
+        monster.hp = monster.maxHP;
+    } else {
+        // Scale current HP proportionally
+        const hpRatio = (parseInt(monster.hp) || 0) / oldMaxHP;
+        monster.hp = Math.floor(monster.maxHP * hpRatio);
+    }
+    
+    addLog(`🎊 ${oldName} ${oldSprite} si è evoluto in ${monster.name} ${monster.sprite}!`);
+    
+    // Show evolution animation
+    showEvolutionScreen(oldName, oldSprite, monster);
+    
+    return true;
+}
+
+// Show evolution screen
+function showEvolutionScreen(oldName, oldSprite, newMonster) {
+    const encounterArea = document.getElementById('encounter-area');
+    const currentContent = encounterArea.innerHTML;
+    
+    encounterArea.innerHTML = `
+        <div class="encounter" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 140, 0, 0.3)); border-color: #ffd700;">
+            <h3 style="color: #ffd700;">✨ EVOLUZIONE! ✨</h3>
+            
+            <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 30px 0;">
+                <div style="text-align: center;">
+                    <span style="font-size: 4em; opacity: 0.7;">${oldSprite}</span>
+                    <p style="color: #ccc; margin-top: 10px;">${oldName}</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <span style="font-size: 3em; color: #ffd700; animation: pulse 1s infinite;">➡️</span>
+                </div>
+                
+                <div style="text-align: center;">
+                    <span style="font-size: 4em; animation: float 2s ease-in-out infinite;">${newMonster.sprite}</span>
+                    <p style="color: #ffd700; font-weight: bold; margin-top: 10px;">${newMonster.name}</p>
+                </div>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">📊 Nuove Statistiche</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center;">
+                    <div>
+                        <strong style="color: #4CAF50;">❤️ HP</strong><br>
+                        <span style="font-size: 1.2em;">${newMonster.maxHP}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #f44336;">⚔️ ATK</strong><br>
+                        <span style="font-size: 1.2em;">${newMonster.attack}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #2196F3;">🛡️ DEF</strong><br>
+                        <span style="font-size: 1.2em;">${newMonster.defense}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <p style="color: #ffd700; font-style: italic;">Il tuo ${oldName} è cresciuto più forte!</p>
+            
+            <div class="buttons">
+                <button onclick="closeEvolutionScreen('${encodeURIComponent(currentContent)}')" 
+                        style="background: linear-gradient(45deg, #ffd700, #ff8c00);">
+                    ✨ Fantastico!
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Auto-close after 5 seconds
+    setTimeout(() => {
+        closeEvolutionScreen(encodeURIComponent(currentContent));
+    }, 5000);
+}
+
+// Close evolution screen and restore previous content
+function closeEvolutionScreen(encodedContent) {
+    const encounterArea = document.getElementById('encounter-area');
+    try {
+        encounterArea.innerHTML = decodeURIComponent(encodedContent);
+    } catch (e) {
+        // If there's an issue with the encoded content, just update display
+        updateDisplay();
+    }
+    updateDisplay();
+}
+
+// Enhanced give experience function with evolution check
 function giveMonsterExp(monster, expAmount) {
     // Ensure expAmount is a valid number
     const safeExpAmount = Math.max(0, parseInt(expAmount) || 0);
@@ -97,6 +388,7 @@ function giveMonsterExp(monster, expAmount) {
     monster.exp += safeExpAmount;
     
     // Level up loop
+    let evolved = false;
     while (monster.exp >= monster.expToNext) {
         monster.exp -= monster.expToNext;
         monster.level++;
@@ -117,33 +409,70 @@ function giveMonsterExp(monster, expAmount) {
         }
         
         addLog(`🎊 ${monster.name} è salito al livello ${monster.level}!`);
+        
+        // Check for evolution after level up
+        if (canEvolve(monster) && !evolved) {
+            evolved = true;
+            setTimeout(() => {
+                evolveMonster(monster);
+                updateDisplay(); // Update display after evolution
+            }, 1000);
+        }
     }
 }
 
-// Spawn different types of monsters
-function spawnGuaranteedCatch() {
-    const commonMonsters = monsterData.filter(m => m.rarity === "Comune");
-    const monster = commonMonsters[Math.floor(Math.random() * commonMonsters.length)];
-    
-    game.currentMonster = createScaledMonster(monster, 1);
-    game.currentMonster.catchRate = 95; // Almost guaranteed
-    
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3>🌟 Primo Incontro!</h3>
-            <span class="monster-sprite">${monster.sprite}</span>
-            <h4>${monster.name} Lv.1</h4>
-            <p style="color: #4CAF50;">Questo mostro sembra docile e facile da catturare!</p>
-            <p style="font-size: 0.9em; color: #ccc;">HP: ${game.currentMonster.hp} | ATK: ${game.currentMonster.attack} | DEF: ${game.currentMonster.defense}</p>
-            <div class="buttons">
-                <button onclick="attemptCatch()">🎯 Cattura Facilmente</button>
-            </div>
-        </div>
-    `;
-    
-    addLog(`🌟 Il tuo primo ${monster.name} ti aspetta!`);
+// Get total number of unique monsters available in the game
+function getTotalAvailableMonsters() {
+    return monsterData.length;
 }
 
+// Get count of unique monsters caught (including evolutions obtained through evolution)
+function getUniqueMonsterschaught() {
+    const caughtNames = new Set();
+    
+    game.monsters.forEach(monster => {
+        // Add the current monster
+        caughtNames.add(monster.name);
+        
+        // If this is an evolved form, also count the pre-evolution as "obtained"
+        const preEvo = getPreEvolution(monster);
+        if (preEvo) {
+            caughtNames.add(preEvo.name);
+        }
+    });
+    
+    // Also check our capture history for any monsters we caught but evolved/merged
+    if (game.captureHistory) {
+        game.captureHistory.forEach(name => {
+            caughtNames.add(name);
+            
+            // If we caught an evolution, also count pre-evolution
+            const monster = getMonsterByName(name);
+            if (monster) {
+                const preEvo = getPreEvolution(monster);
+                if (preEvo) {
+                    caughtNames.add(preEvo.name);
+                }
+            }
+        });
+    }
+    
+    return caughtNames.size;
+}
+
+// Initialize capture history if it doesn't exist
+function initializeCaptureHistory() {
+    if (!game.captureHistory) {
+        game.captureHistory = new Set();
+        
+        // Add existing monsters to history
+        game.monsters.forEach(monster => {
+            game.captureHistory.add(monster.name);
+        });
+    }
+}
+
+// Enhanced monster spawning with evolution forms after floor 20
 function spawnMonster() {
     // Determine level based on current floor
     const floorBlock = Math.floor((game.currentFloor - 1) / 10) + 1;
@@ -151,9 +480,10 @@ function spawnMonster() {
     const maxLevel = floorBlock * 2 + 1;
     const wildLevel = minLevel + Math.floor(Math.random() * (maxLevel - minLevel + 1));
     
-    // Determine rarity based on floor progression
+    // Determine rarity and whether to spawn evolved forms
     const rand = Math.random();
     let rarity;
+    let allowEvolved = game.currentFloor >= 20;
     
     if (floorBlock <= 2) {
         // Early floors: mostly common
@@ -174,17 +504,32 @@ function spawnMonster() {
         else rarity = "Leggendario";
     }
     
-    const available = monsterData.filter(m => m.rarity === rarity);
+    // Get available monsters
+    let available = monsterData.filter(m => m.rarity === rarity);
+    
+    // If we're past floor 20, maybe spawn evolved forms
+    if (allowEvolved && Math.random() < 0.3) { // 30% chance for evolved form
+        const evolvedMonsters = available.filter(m => m.stage === 2);
+        if (evolvedMonsters.length > 0) {
+            available = evolvedMonsters;
+        }
+    } else {
+        // Filter to stage 1 monsters only
+        available = available.filter(m => m.stage === 1);
+    }
+    
     const monster = available[Math.floor(Math.random() * available.length)];
     
     game.currentMonster = createScaledMonster(monster, wildLevel);
     game.battlesThisBlock++; // Count this battle
     
+    const stageText = game.currentMonster.stage === 2 ? " (Evoluto)" : "";
+    
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
             <h3>🚨 Mostro Selvaggio - Piano ${game.currentFloor}</h3>
             <span class="monster-sprite">${monster.sprite}</span>
-            <h4>${monster.name} Lv.${wildLevel}</h4>
+            <h4>${monster.name} Lv.${wildLevel}${stageText}</h4>
             <p><strong>Rarità:</strong> ${monster.rarity}</p>
             <p style="font-size: 0.9em; color: #ccc;">HP: ${game.currentMonster.hp} | ATK: ${game.currentMonster.attack} | DEF: ${game.currentMonster.defense}</p>
             <p style="color: #ffd700; font-size: 0.9em;">💰 Ricompensa: ${game.currentMonster.expValue} monete</p>
@@ -196,317 +541,136 @@ function spawnMonster() {
         </div>
     `;
     
-    addLog(`🎯 Piano ${game.currentFloor}: ${monster.name} Lv.${wildLevel} (${monster.rarity})`);
+    addLog(`🎯 Piano ${game.currentFloor}: ${monster.name} Lv.${wildLevel} (${monster.rarity})${stageText}`);
 }
 
-function spawnBoss() {
-    const bossFloor = Math.floor(game.currentFloor / 10);
-    const minLevel = Math.max(1, bossFloor * 3 - 1);
-    const maxLevel = bossFloor * 3 + 2;
-    const bossLevel = minLevel + Math.floor(Math.random() * (maxLevel - minLevel + 1));
-    
-    // Boss rarity based on floor
-    let rarity;
-    if (bossFloor <= 2) rarity = "Non Comune";
-    else if (bossFloor <= 4) rarity = "Raro";
-    else rarity = "Leggendario";
-    
-    const available = monsterData.filter(m => m.rarity === rarity);
-    const monster = available[Math.floor(Math.random() * available.length)];
-    
-    game.currentMonster = createScaledMonster(monster, bossLevel);
-    game.currentMonster.catchRate = Math.max(10, game.currentMonster.catchRate - 10); // Harder to catch
-    
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter boss-encounter">
-            <h3 style="color: #9C27B0;">👑 BOSS - Piano ${game.currentFloor}</h3>
-            <span class="monster-sprite" style="filter: drop-shadow(0 0 10px #9C27B0);">${monster.sprite}</span>
-            <h4>${monster.name} Lv.${bossLevel} 👑</h4>
-            <p style="color: #9C27B0; font-weight: bold;">Un mostro boss incredibilmente potente!</p>
-            <p style="font-size: 0.9em; color: #ccc;">HP: ${game.currentMonster.hp} | ATK: ${game.currentMonster.attack} | DEF: ${game.currentMonster.defense}</p>
-            <p style="color: #ffd700; font-size: 0.9em;">💰 Ricompensa: ${Math.floor(game.currentMonster.expValue * 1.5)} monete</p>
-            <div class="buttons">
-                ${game.monsters.length > 0 ? '<button onclick="showMonsterSelection()">⚔️ Combatti Boss</button>' : ''}
-                <button onclick="attemptCatch()">🎯 Lancia Pokeball</button>
-                <button onclick="runAway()">🏃 Ritirata</button>
-            </div>
-        </div>
-    `;
-    
-    addLog(`👑 BOSS BATTLE! ${monster.name} Lv.${bossLevel} ti sfida!`);
-}
-
-// Attempt to catch the current monster
+// Enhanced attempt catch with evolution line merging
 function attemptCatch() {
-    if (game.player.pokeballs <= 0) {
-        addLog("❌ Non hai Pokeball! Vai al prossimo negozio!");
-        return;
-    }
+    console.log("attemptCatch called"); // Debug log
     
-    game.player.pokeballs--;
-    const monster = game.currentMonster;
-    
-    // Calculate catch chance
-    let chance = parseInt(monster.catchRate) || 50;
-    const duplicates = game.monsters.filter(m => m.name === monster.name).length;
-    chance -= duplicates * 8;
-    chance = Math.max(10, Math.min(95, chance));
-    
-    if (Math.random() * 100 < chance) {
-        // Successful catch
-        const existingMonster = game.monsters.find(m => m.name === monster.name);
-        const moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
-        
-        // Ensure money is a valid number before adding
-        game.player.money = Math.max(0, parseInt(game.player.money) || 0);
-        game.player.money += moneyReward;
-        
-        if (existingMonster) {
-            // MERGE: Convert caught monster to EXP for existing monster
-            // Give more EXP based on the level of the caught monster
-            const levelMultiplier = Math.max(1, parseInt(monster.level) || 1);
-            const mergeExp = (parseInt(monster.expValue) || 10) * 2 * levelMultiplier;
-            giveMonsterExp(existingMonster, mergeExp);
-            addLog(`🔄 ${monster.name} Lv.${monster.level} catturato e fuso! (+${moneyReward} monete)`);
-            addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione!`);
-            showMergeSuccess(monster, existingMonster, mergeExp);
-        } else {
-            // NEW MONSTER: Add to collection - MAINTAIN LEVEL
-            const newMonster = initializeMonster(monster);
-            game.monsters.push(newMonster);
-            addLog(`🎉 ${monster.name} Lv.${monster.level} catturato! (+${moneyReward} monete)`);
-            showCaptureSuccess(newMonster);
+    try {
+        if (game.player.pokeballs <= 0) {
+            addLog("❌ Non hai Pokeball! Vai al prossimo negozio!");
+            return;
         }
         
-        game.currentMonster = null;
-    } else {
-        // Failed catch
-        addLog(`💔 ${monster.name} è scappato dalla Pokeball! (${chance}% di successo)`);
+        game.player.pokeballs--;
+        const monster = game.currentMonster;
         
-        if (Math.random() < 0.4) {
-            showMonsterFled(monster);
+        if (!monster) {
+            console.error("No current monster to catch!");
+            addLog("❌ Nessun mostro da catturare!");
+            return;
+        }
+        
+        console.log("Attempting to catch:", monster.name); // Debug log
+        
+        // Initialize capture history
+        initializeCaptureHistory();
+        
+        // Calculate catch chance
+        let chance = parseInt(monster.catchRate) || 50;
+        
+        // Find existing monster in same evolution line for duplicate penalty
+        const sameLineMonsters = game.monsters.filter(m => m.evolutionLine === monster.evolutionLine);
+        chance -= sameLineMonsters.length * 8;
+        chance = Math.max(10, Math.min(95, chance));
+        
+        console.log("Catch chance:", chance); // Debug log
+        
+        if (Math.random() * 100 < chance) {
+            // Successful catch
+            const moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
+            
+            // Ensure money is a valid number before adding
+            game.player.money = Math.max(0, parseInt(game.player.money) || 0);
+            game.player.money += moneyReward;
+            
+            // Add to capture history
+            game.captureHistory.add(monster.name);
+            
+            // Find existing monster in same evolution line
+            const existingMonster = game.monsters.find(m => m.evolutionLine === monster.evolutionLine);
+            
+            if (existingMonster) {
+                // MERGE: Convert caught monster to EXP for existing monster
+                const levelMultiplier = Math.max(1, parseInt(monster.level) || 1);
+                const mergeExp = (parseInt(monster.expValue) || 10) * 2 * levelMultiplier;
+                
+                giveMonsterExp(existingMonster, mergeExp);
+                addLog(`🔄 ${monster.name} Lv.${monster.level} catturato e fuso con ${existingMonster.name}! (+${moneyReward} monete)`);
+                addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione!`);
+                showMergeSuccess(monster, existingMonster, mergeExp);
+            } else {
+                // NEW MONSTER: Add to collection - MAINTAIN LEVEL
+                const newMonster = initializeMonster(monster);
+                game.monsters.push(newMonster);
+                addLog(`🎉 ${monster.name} Lv.${monster.level} catturato! (+${moneyReward} monete)`);
+                showCaptureSuccess(newMonster);
+            }
+            
             game.currentMonster = null;
         } else {
-            showCatchFailed(monster, chance);
-        }
-    }
-    
-    updateDisplay();
-}
-
-// Show different catch result screens
-function showCaptureSuccess(monster) {
-    const moneyReward = Math.floor((parseInt(monster.expValue) || 10) * 0.8);
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3 style="color: #4CAF50;">✅ Cattura Riuscita!</h3>
-            <span class="monster-sprite">${monster.sprite}</span>
-            <h4>${monster.name} Lv.${monster.level}</h4>
-            <p style="color: #4CAF50; margin: 15px 0;"><strong>${monster.name}</strong> si è unito alla tua squadra!</p>
-            <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
-            <p style="color: #2196F3;">🌟 Mantenuto livello ${monster.level}!</p>
-            <div class="buttons">
-                <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
-            </div>
-        </div>
-    `;
-}
-
-function showMergeSuccess(caughtMonster, existingMonster, mergeExp) {
-    const moneyReward = Math.floor((parseInt(caughtMonster.expValue) || 10) * 0.8);
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3 style="color: #9C27B0;">🔄 Fusione Riuscita!</h3>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin: 20px 0;">
-                <div style="text-align: center;">
-                    <span style="font-size: 2em;">${caughtMonster.sprite}</span>
-                    <p style="font-size: 0.9em; color: #ccc;">Lv.${caughtMonster.level} Catturato</p>
-                </div>
-                <span style="font-size: 2em; color: #9C27B0;">➕</span>
-                <div style="text-align: center;">
-                    <span style="font-size: 2em;">${existingMonster.sprite}</span>
-                    <p style="font-size: 0.9em; color: #4CAF50;">Lv.${existingMonster.level}</p>
-                </div>
-                <span style="font-size: 2em; color: #ffd700;">✨</span>
-            </div>
-            <h4>${caughtMonster.name} Lv.${caughtMonster.level} si è fuso con il tuo team!</h4>
-            <p style="color: #9C27B0; margin: 15px 0;">Il ${caughtMonster.name} catturato si è unito al tuo ${existingMonster.name}!</p>
-            <p style="color: #ffd700;">💰 +${moneyReward} monete</p>
-            <p style="color: #9C27B0;">💫 +${mergeExp} EXP per ${existingMonster.name}</p>
-            <div class="buttons">
-                <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
-            </div>
-        </div>
-    `;
-}
-
-function showCatchFailed(monster, successChance) {
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3 style="color: #ff6b6b;">💔 Cattura Fallita!</h3>
-            <span class="monster-sprite">${monster.sprite}</span>
-            <h4>${monster.name}</h4>
-            <p style="margin: 15px 0;">${monster.name} è scappato dalla Pokeball, ma è ancora qui!</p>
-            <p style="color: #ccc; font-size: 0.9em;">Probabilità di successo era: ${successChance.toFixed(1)}%</p>
-            <p style="color: #ff6b6b;">🎯 Pokeball rimanenti: ${game.player.pokeballs}</p>
-            <div class="buttons">
-                <button onclick="attemptCatch()" ${game.player.pokeballs <= 0 ? 'disabled' : ''}>🎯 Riprova Cattura</button>
-                <button onclick="runAway()">🏃 Scappa</button>
-            </div>
-        </div>
-    `;
-}
-
-function showMonsterFled(monster) {
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3 style="color: #ff8c00;">🌪️ Mostro Fuggito!</h3>
-            <span class="monster-sprite" style="opacity: 0.5;">💨</span>
-            <h4 style="color: #ccc;">${monster.name} è scappato...</h4>
-            <p style="margin: 15px 0; color: #ff8c00;">${monster.name} è fuggito nella natura selvaggia!</p>
-            <p style="color: #ccc; font-size: 0.9em;">Il mostro è scappato! Prova il prossimo piano.</p>
-            <div class="buttons">
-                <button onclick="advanceFloor()">➡️ Avanza Piano ${game.currentFloor + 1}</button>
-            </div>
-        </div>
-    `;
-}
-
-// Spawn events (treasure, healing, etc.)
-function spawnEvent() {
-    const moneyReward = Math.max(5, Math.floor(game.currentFloor / 5) * 3 + Math.floor(Math.random() * 10));
-    
-    const events = [
-        {
-            title: "Tesoro Nascosto",
-            sprite: "💰",
-            description: "Hai trovato un piccolo tesoro sepolto nella terra!",
-            reward: "money",
-            amount: moneyReward,
-            message: `💰 Hai trovato ${moneyReward} monete!`
-        },
-        {
-            title: "Pokeball Abbandonata",
-            sprite: "🎁", 
-            description: "Un trainer ha dimenticato questa Pokeball. Fortuna tua!",
-            reward: "pokeball",
-            amount: 1,
-            message: "🎁 Hai trovato una Pokeball per terra!"
-        },
-        {
-            title: "Area di Riposo",
-            sprite: "🏕️",
-            description: "Un'area tranquilla dove riposare. I tuoi mostri recuperano un po' di energia.",
-            reward: "heal",
-            amount: 0.3,
-            message: "🏕️ I tuoi mostri hanno recuperato il 30% della loro salute!"
-        }
-    ];
-    
-    const event = events[Math.floor(Math.random() * events.length)];
-    
-    // Apply event rewards - ensure money operations are safe
-    if (event.reward === "money") {
-        game.player.money = Math.max(0, parseInt(game.player.money) || 0);
-        game.player.money += parseInt(event.amount) || 0;
-    } else if (event.reward === "pokeball") {
-        game.player.pokeballs = Math.max(0, parseInt(game.player.pokeballs) || 0);
-        game.player.pokeballs += parseInt(event.amount) || 0;
-    } else if (event.reward === "heal") {
-        game.monsters.forEach(monster => {
-            const currentHP = parseInt(monster.hp) || 0;
-            const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 30;
-            if (currentHP < maxHP) {
-                monster.hp = Math.min(maxHP, Math.floor(currentHP + maxHP * event.amount));
-            }
-        });
-    }
-    
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3>🔍 Evento - Piano ${game.currentFloor}</h3>
-            <span class="monster-sprite">${event.sprite}</span>
-            <h4>${event.title}</h4>
-            <p style="margin: 15px 0; line-height: 1.4;">${event.description}</p>
-            ${event.reward ? `<p style="color: #4CAF50; font-weight: bold;">💰 Ricompensa ottenuta!</p>` : ''}
-            <div class="buttons">
-                <button onclick="advanceFloor()">➡️ Avanza al Piano ${game.currentFloor + 1}</button>
-            </div>
-        </div>
-    `;
-    
-    addLog(event.message);
-}
-
-// Fix monsters that don't have proper maxHP calculated
-function fixMonsterStats() {
-    let fixedCount = 0;
-    
-    game.monsters.forEach(monster => {
-        let needsFix = false;
-        
-        // Ensure monster has all required properties
-        if (!monster.level) {
-            monster.level = 1;
-            needsFix = true;
-        }
-        
-        if (!monster.exp) {
-            monster.exp = 0;
-            needsFix = true;
-        }
-        
-        if (!monster.expToNext) {
-            monster.expToNext = Math.floor(50 * Math.pow(1.2, (monster.level || 1) - 1));
-            needsFix = true;
-        }
-        
-        // Fix maxHP calculation if it's missing or incorrect
-        if (!monster.maxHP || monster.maxHP === monster.baseHP) {
-            const level = parseInt(monster.level) || 1;
-            const levelBonus = level - 1;
-            const baseHP = parseInt(monster.baseHP) || 30;
+            // Failed catch
+            addLog(`💔 ${monster.name} è scappato dalla Pokeball! (${chance}% di successo)`);
             
-            monster.maxHP = baseHP + Math.floor(levelBonus * (baseHP * 0.1));
-            needsFix = true;
+            if (Math.random() < 0.4) {
+                showMonsterFled(monster);
+                game.currentMonster = null;
+            } else {
+                showCatchFailed(monster, chance);
+            }
         }
         
-        // Fix attack and defense if they're missing
-        if (!monster.attack) {
-            const level = parseInt(monster.level) || 1;
-            const levelBonus = level - 1;
-            const baseAttack = parseInt(monster.baseAttack) || 20;
-            monster.attack = baseAttack + Math.floor(levelBonus * (baseAttack * 0.15));
-            needsFix = true;
-        }
+        updateDisplay();
+        console.log("attemptCatch completed"); // Debug log
         
-        if (!monster.defense) {
-            const level = parseInt(monster.level) || 1;
-            const levelBonus = level - 1;
-            const baseDefense = parseInt(monster.baseDefense) || 15;
-            monster.defense = baseDefense + Math.floor(levelBonus * (baseDefense * 0.1));
-            needsFix = true;
-        }
+    } catch (error) {
+        console.error("Error in attemptCatch:", error);
+        addLog("❌ Errore durante la cattura!");
         
-        // Ensure HP doesn't exceed maxHP
-        if (parseInt(monster.hp) > parseInt(monster.maxHP)) {
-            monster.hp = monster.maxHP;
-            needsFix = true;
+        // Fallback: simple successful catch
+        if (game.currentMonster) {
+            const monster = game.currentMonster;
+            const newMonster = {
+                name: monster.name,
+                sprite: monster.sprite,
+                rarity: monster.rarity || "Comune",
+                level: 1,
+                exp: 0,
+                expToNext: 50,
+                hp: monster.hp || 45,
+                maxHP: monster.maxHP || 45,
+                baseHP: monster.baseHP || 45,
+                attack: monster.attack || 35,
+                baseAttack: monster.baseAttack || 35,
+                defense: monster.defense || 25,
+                baseDefense: monster.baseDefense || 25,
+                evolutionLine: monster.evolutionLine || "fire",
+                stage: 1,
+                captureDate: Date.now()
+            };
+            
+            game.monsters.push(newMonster);
+            game.currentMonster = null;
+            
+            const encounterArea = document.getElementById('encounter-area');
+            if (encounterArea) {
+                encounterArea.innerHTML = `
+                    <div class="encounter">
+                        <h3 style="color: #4CAF50;">✅ Cattura Riuscita!</h3>
+                        <span class="monster-sprite">${newMonster.sprite}</span>
+                        <h4>${newMonster.name} Lv.1</h4>
+                        <p style="color: #4CAF50; margin: 15px 0;"><strong>${newMonster.name}</strong> si è unito alla tua squadra!</p>
+                        <div class="buttons">
+                            <button onclick="advanceFloor()">➡️ Avanza Piano 2</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            addLog(`🎉 ${newMonster.name} catturato con successo!`);
+            updateDisplay();
         }
-        
-        // Ensure HP is never negative
-        if (parseInt(monster.hp) < 0) {
-            monster.hp = 0;
-            needsFix = true;
-        }
-        
-        if (needsFix) {
-            fixedCount++;
-        }
-    });
-    
-    if (fixedCount > 0) {
-        addLog(`🔧 Riparati ${fixedCount} mostri con statistiche errate!`);
-        updateDisplay(); // Refresh the display to show correct values
     }
 }

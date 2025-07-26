@@ -1,4 +1,4 @@
-// Enhanced ui.js with reset support and improved notifications
+// Enhanced ui.js with evolution support and proper monster counter
 
 // Add a log message to the game log
 function addLog(message) {
@@ -23,12 +23,16 @@ function updateDisplay() {
     updateCollection();
 }
 
-// Update player statistics display
+// Update player statistics display with evolution-aware counter
 function updatePlayerStats() {
     document.getElementById('floor').textContent = game.currentFloor;
     document.getElementById('money').textContent = game.player.money;
     document.getElementById('pokeballs').textContent = game.player.pokeballs;
-    document.getElementById('caught').textContent = game.monsters.length;
+    
+    // Enhanced monster counter with evolution tracking
+    const uniqueCaught = getUniqueMonsterschaught();
+    const totalAvailable = getTotalAvailableMonsters();
+    document.getElementById('caught').textContent = `${uniqueCaught}/${totalAvailable}`;
     
     // Add warning colors for low resources
     const pokeballElement = document.getElementById('pokeballs');
@@ -55,13 +59,22 @@ function updatePlayerStats() {
         moneyElement.style.fontWeight = 'bold';
     }
     
-    // Color for caught monsters
+    // Color for caught monsters with completion progress
     const caughtElement = document.getElementById('caught');
-    caughtElement.style.color = '#4CAF50';
+    const completionRate = uniqueCaught / totalAvailable;
+    if (completionRate >= 1.0) {
+        caughtElement.style.color = '#ffd700'; // Gold for 100%
+    } else if (completionRate >= 0.8) {
+        caughtElement.style.color = '#4CAF50'; // Green for 80%+
+    } else if (completionRate >= 0.5) {
+        caughtElement.style.color = '#2196F3'; // Blue for 50%+
+    } else {
+        caughtElement.style.color = '#FF9800'; // Orange for less than 50%
+    }
     caughtElement.style.fontWeight = 'bold';
 }
 
-// Update the monster collection display
+// Enhanced update collection display with evolution information
 function updateCollection() {
     const collection = document.getElementById('monster-collection');
     const countElement = document.getElementById('collection-count');
@@ -82,12 +95,20 @@ function updateCollection() {
         return;
     }
 
-    // Sort monsters by level (highest first), then by name
+    // Sort monsters by evolution line, then by stage, then by level
     const sortedMonsters = [...game.monsters].sort((a, b) => {
+        // First sort by evolution line
+        if (a.evolutionLine !== b.evolutionLine) {
+            return a.evolutionLine.localeCompare(b.evolutionLine);
+        }
+        // Then by stage (higher stage first)
+        const stageA = a.stage || 1;
+        const stageB = b.stage || 1;
+        if (stageA !== stageB) return stageB - stageA;
+        // Finally by level (highest first)
         const levelA = a.level || 1;
         const levelB = b.level || 1;
-        if (levelA !== levelB) return levelB - levelA;
-        return a.name.localeCompare(b.name);
+        return levelB - levelA;
     });
 
     collection.innerHTML = '';
@@ -136,6 +157,12 @@ function updateCollection() {
             case 'Leggendario': rarityColor = '#FF9800'; break;
         }
         
+        // Evolution indicator
+        const stage = monster.stage || 1;
+        const stageIndicator = stage === 2 ? '⭐' : '';
+        const evolutionInfo = canEvolve(monster) ? 
+            `<span style="color: #ffd700; font-size: 0.8em; margin-left: 5px;">🔄 Può evolversi!</span>` : '';
+        
         div.style.opacity = monsterOpacity;
         div.style.border = monsterBorder;
         
@@ -143,12 +170,13 @@ function updateCollection() {
             <span class="monster-sprite-small" style="filter: ${isKO ? 'grayscale(100%)' : 'none'};">${monster.sprite}</span>
             <div class="monster-info">
                 <div class="monster-header">
-                    <strong>${monster.name}</strong> 
+                    <strong>${monster.name}</strong> ${stageIndicator}
                     <span class="monster-level">Lv.${level}</span>
                     ${isKO ? '<span style="color: #f44336; font-size: 0.8em; margin-left: 5px;">💀 KO</span>' : ''}
+                    ${evolutionInfo}
                 </div>
                 <div class="monster-details">
-                    <small style="color: ${rarityColor};">${monster.rarity}</small>
+                    <small style="color: ${rarityColor};">${monster.rarity}${stage === 2 ? ' (Evoluto)' : ''}</small>
                     <div class="hp-bar-container">
                         <span class="hp-text">HP: ${hp}/${actualMaxHP}</span>
                         <div class="progress-bar">
@@ -189,6 +217,7 @@ function clearUI() {
             <div class="log-entry">💡 Piano 1: Primo mostro garantito</div>
             <div class="log-entry">🏪 Piano 5,15,25...: Negozi</div>
             <div class="log-entry">👑 Piano 10,20,30...: Boss</div>
+            <div class="log-entry">✨ Evoluzioni: Livello 10/15/20 a seconda della rarità!</div>
         `;
     }
     
@@ -247,6 +276,10 @@ function showNotification(message, type = 'info', duration = 3000) {
             notification.style.backgroundColor = '#9C27B0';
             notification.style.border = '2px solid #f44336';
             break;
+        case 'evolution':
+            notification.style.backgroundColor = '#ffd700';
+            notification.style.color = '#000';
+            break;
         default:
             notification.style.backgroundColor = '#2196F3';
     }
@@ -269,9 +302,19 @@ function showNotification(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
-// Show game over notification
-function showGameOverNotification(floor, monstersCount) {
-    showNotification(`Game Over! Piano ${floor}, ${monstersCount} mostri catturati`, 'gameover', 5000);
+// Show game over notification with evolution stats
+function showGameOverNotification(floor, monstersCount, uniqueCaught, totalAvailable) {
+    const completionRate = ((uniqueCaught / totalAvailable) * 100).toFixed(1);
+    showNotification(
+        `Game Over! Piano ${floor}, ${monstersCount} mostri attivi, ${uniqueCaught}/${totalAvailable} specie scoperte (${completionRate}%)`, 
+        'gameover', 
+        6000
+    );
+}
+
+// Show evolution notification
+function showEvolutionNotification(oldName, newName) {
+    showNotification(`✨ ${oldName} si è evoluto in ${newName}!`, 'evolution', 4000);
 }
 
 // Animate stat changes (enhanced for reset scenarios)
@@ -325,6 +368,75 @@ function showMonsterStatusSummary() {
     if (koCount > 0) statusMessage += `${koCount} 💀`;
     
     addLog(`📊 ${statusMessage}`);
+}
+
+// Show detailed evolution information in shop
+function showEvolutionGuide() {
+    const evolutionLines = {};
+    
+    // Group monsters by evolution line
+    monsterData.forEach(monster => {
+        if (!evolutionLines[monster.evolutionLine]) {
+            evolutionLines[monster.evolutionLine] = [];
+        }
+        evolutionLines[monster.evolutionLine].push(monster);
+    });
+    
+    let evolutionHtml = '';
+    Object.keys(evolutionLines).forEach(line => {
+        const monsters = evolutionLines[line].sort((a, b) => (a.stage || 1) - (b.stage || 1));
+        
+        if (monsters.length > 1) {
+            evolutionHtml += `
+                <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        ${monsters.map((monster, index) => `
+                            <div style="text-align: center;">
+                                <span style="font-size: 2em;">${monster.sprite}</span>
+                                <p style="font-size: 0.9em; margin: 5px 0;">${monster.name}</p>
+                                <small style="color: #ccc;">
+                                    ${monster.stage === 1 && monster.evolutionLevel ? 
+                                        `Evolve Lv.${monster.evolutionLevel}` : 
+                                        monster.stage === 2 ? 'Evoluto' : 'Finale'}
+                                </small>
+                            </div>
+                            ${index < monsters.length - 1 ? '<span style="font-size: 1.5em; color: #ffd700;">➡️</span>' : ''}
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    document.getElementById('encounter-area').innerHTML = `
+        <div class="encounter">
+            <h3 style="color: #ffd700;">✨ Guida alle Evoluzioni</h3>
+            <span class="monster-sprite">📚</span>
+            
+            <div style="margin: 20px 0; padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 8px;">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">🔄 Come Funzionano le Evoluzioni</h4>
+                <p style="font-size: 0.9em; line-height: 1.4; color: #ccc;">
+                    • I mostri evolvono automaticamente raggiungendo certi livelli<br>
+                    • <strong>Comuni:</strong> Evolvono al livello 10<br>
+                    • <strong>Non Comuni:</strong> Evolvono al livello 15<br>
+                    • <strong>Rari:</strong> Evolvono al livello 20<br>
+                    • Le fusioni funzionano su tutta la linea evolutiva<br>
+                    • Dopo il piano 20 puoi trovare forme evolute in natura
+                </p>
+            </div>
+            
+            <div style="max-height: 300px; overflow-y: auto;">
+                <h4 style="color: #2196F3; margin-bottom: 15px;">🔗 Linee Evolutive</h4>
+                ${evolutionHtml}
+            </div>
+            
+            <div class="buttons">
+                <button onclick="spawnShop()">↩️ Torna al Negozio</button>
+            </div>
+        </div>
+    `;
+    
+    addLog(`✨ Guida alle evoluzioni visualizzata!`);
 }
 
 // Show loading state during async operations

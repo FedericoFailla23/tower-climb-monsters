@@ -29,8 +29,8 @@
             </div>
             <div class="stat-item">
                 <span class="stat-icon">👹</span>
-                <span class="stat-label">Catturati:</span>
-                <span class="stat-value" id="caught">0</span>
+                <span class="stat-label">Specie:</span>
+                <span class="stat-value" id="caught">0/15</span>
             </div>
         </div>
         
@@ -46,6 +46,7 @@
                         <h4>Inizia la tua avventura</h4>
                         <p style="margin: 15px 0;">Benvenuto nella Torre dei Mostri! Sei pronto per iniziare la tua scalata epica?</p>
                         <p style="color: #ffd700; font-size: 0.9em;">💡 Piano 1: Il tuo primo mostro ti aspetta!</p>
+                        <p style="color: #ffd700; font-size: 0.9em;">✨ Nuovo: Sistema di evoluzione automatica!</p>
                         <div class="buttons">
                             <button onclick="startFirstEncounter()" id="main-explore-btn">🌟 Inizia al Piano 1</button>
                             <button onclick="showHelp()">❓ Aiuto</button>
@@ -60,6 +61,7 @@
                         <div class="log-entry">💡 Piano 1: Primo mostro garantito</div>
                         <div class="log-entry">🏪 Piano 5,15,25...: Negozi</div>
                         <div class="log-entry">👑 Piano 10,20,30...: Boss</div>
+                        <div class="log-entry">✨ Evoluzioni: Livello 10/15/20 a seconda della rarità!</div>
                     </div>
                 </div>
             </div>
@@ -79,7 +81,7 @@
         </div>
     </div>
 
-    <!-- Load JavaScript modules -->
+    <!-- Load JavaScript modules in the correct order -->
     <script src="js/monsters.js"></script>
     <script src="js/battle.js"></script>
     <script src="js/shop.js"></script>
