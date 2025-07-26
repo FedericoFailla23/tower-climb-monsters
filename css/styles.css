@@ -259,6 +259,7 @@ button:disabled {
     border-radius: 3px;
     margin: 4px 0;
     overflow: hidden;
+    max-width: 200px; /* Prevent bars from getting too long */
 }
 
 .progress-fill {

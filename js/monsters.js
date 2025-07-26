@@ -49,9 +49,9 @@ const monsterData = [
         rarity: "Non Comune", 
         catchRate: 55, 
         expValue: 60, 
-        baseHP: 70, 
-        baseAttack: 45, 
-        baseDefense: 55,
+        baseHP: 60, 
+        baseAttack: 40, 
+        baseDefense: 45,
         stage: 1,
         evolutionLevel: 15,
         evolutionName: "Montagna",
@@ -63,9 +63,9 @@ const monsterData = [
         rarity: "Non Comune", 
         catchRate: 55, 
         expValue: 60, 
-        baseHP: 60, 
-        baseAttack: 55, 
-        baseDefense: 35,
+        baseHP: 55, 
+        baseAttack: 50, 
+        baseDefense: 30,
         stage: 1,
         evolutionLevel: 15,
         evolutionName: "Tempesta",
@@ -77,9 +77,9 @@ const monsterData = [
         rarity: "Non Comune", 
         catchRate: 55, 
         expValue: 60, 
-        baseHP: 65, 
-        baseAttack: 50, 
-        baseDefense: 45,
+        baseHP: 60, 
+        baseAttack: 45, 
+        baseDefense: 40,
         stage: 1,
         evolutionLevel: 15,
         evolutionName: "Blizzard",
@@ -91,9 +91,9 @@ const monsterData = [
         rarity: "Raro", 
         catchRate: 35, 
         expValue: 120, 
-        baseHP: 80, 
-        baseAttack: 70, 
-        baseDefense: 40,
+        baseHP: 70, 
+        baseAttack: 60, 
+        baseDefense: 35,
         stage: 1,
         evolutionLevel: 20,
         evolutionName: "Spettro",
@@ -107,9 +107,9 @@ const monsterData = [
         rarity: "Non Comune", 
         catchRate: 45, 
         expValue: 80, 
-        baseHP: 75, 
-        baseAttack: 65, 
-        baseDefense: 40,
+        baseHP: 65, 
+        baseAttack: 55, 
+        baseDefense: 35,
         stage: 2,
         evolutionLine: "fire",
         preEvolution: "Fiammella"
@@ -120,9 +120,9 @@ const monsterData = [
         rarity: "Non Comune", 
         catchRate: 45, 
         expValue: 80, 
-        baseHP: 85, 
-        baseAttack: 55, 
-        baseDefense: 50,
+        baseHP: 75, 
+        baseAttack: 50, 
+        baseDefense: 45,
         stage: 2,
         evolutionLine: "water",
         preEvolution: "Gocciolina"
@@ -133,9 +133,9 @@ const monsterData = [
         rarity: "Non Comune", 
         catchRate: 45, 
         expValue: 80, 
-        baseHP: 90, 
-        baseAttack: 45, 
-        baseDefense: 60,
+        baseHP: 80, 
+        baseAttack: 40, 
+        baseDefense: 55,
         stage: 2,
         evolutionLine: "grass",
         preEvolution: "Fogliolino"
@@ -146,9 +146,9 @@ const monsterData = [
         rarity: "Raro", 
         catchRate: 25, 
         expValue: 150, 
-        baseHP: 110, 
-        baseAttack: 75, 
-        baseDefense: 85,
+        baseHP: 95, 
+        baseAttack: 65, 
+        baseDefense: 75,
         stage: 2,
         evolutionLine: "rock",
         preEvolution: "Sassetto"
@@ -159,9 +159,9 @@ const monsterData = [
         rarity: "Raro", 
         catchRate: 25, 
         expValue: 150, 
-        baseHP: 95, 
-        baseAttack: 90, 
-        baseDefense: 55,
+        baseHP: 85, 
+        baseAttack: 80, 
+        baseDefense: 50,
         stage: 2,
         evolutionLine: "electric",
         preEvolution: "Scintilla"
@@ -172,9 +172,9 @@ const monsterData = [
         rarity: "Raro", 
         catchRate: 25, 
         expValue: 150, 
-        baseHP: 100, 
-        baseAttack: 80, 
-        baseDefense: 70,
+        baseHP: 90, 
+        baseAttack: 70, 
+        baseDefense: 65,
         stage: 2,
         evolutionLine: "ice",
         preEvolution: "Cristallo"
@@ -185,9 +185,9 @@ const monsterData = [
         rarity: "Leggendario", 
         catchRate: 10, 
         expValue: 300, 
-        baseHP: 130, 
-        baseAttack: 110, 
-        baseDefense: 65,
+        baseHP: 110, 
+        baseAttack: 95, 
+        baseDefense: 60,
         stage: 2,
         evolutionLine: "ghost",
         preEvolution: "Fantasma"
@@ -200,9 +200,9 @@ const monsterData = [
         rarity: "Leggendario", 
         catchRate: 15, 
         expValue: 250, 
-        baseHP: 120, 
-        baseAttack: 95, 
-        baseDefense: 75,
+        baseHP: 105, 
+        baseAttack: 85, 
+        baseDefense: 70,
         stage: 1,
         evolutionLine: "dragon"
     }
@@ -292,8 +292,22 @@ function evolveMonster(monster) {
     return true;
 }
 
-// Show evolution screen as a popup overlay
+// Evolution popup queue
+window.evolutionPopupQueue = window.evolutionPopupQueue || [];
+window.evolutionPopupActive = window.evolutionPopupActive || false;
+
 function showEvolutionScreen(oldName, oldSprite, newMonster) {
+    // Add this evolution to the queue
+    window.evolutionPopupQueue.push({ oldName, oldSprite, newMonster });
+    processEvolutionQueue();
+}
+
+function processEvolutionQueue() {
+    if (window.evolutionPopupActive) return;
+    if (window.evolutionPopupQueue.length === 0) return;
+    window.evolutionPopupActive = true;
+    const { oldName, oldSprite, newMonster } = window.evolutionPopupQueue.shift();
+
     // Create popup overlay
     const popup = document.createElement('div');
     popup.id = 'evolution-popup';
@@ -310,7 +324,6 @@ function showEvolutionScreen(oldName, oldSprite, newMonster) {
         z-index: 1000;
         animation: fadeIn 0.3s ease-in;
     `;
-    
     popup.innerHTML = `
         <div style="
             background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 140, 0, 0.95));
@@ -323,23 +336,19 @@ function showEvolutionScreen(oldName, oldSprite, newMonster) {
             animation: scaleIn 0.3s ease-out;
         ">
             <h3 style="color: #ffd700; margin-bottom: 20px; font-size: 1.5em;">✨ EVOLUZIONE! ✨</h3>
-            
             <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 30px 0;">
                 <div style="text-align: center;">
                     <span style="font-size: 4em; opacity: 0.7;">${oldSprite}</span>
                     <p style="color: #333; margin-top: 10px; font-weight: bold;">${oldName}</p>
                 </div>
-                
                 <div style="text-align: center;">
                     <span style="font-size: 3em; color: #ffd700; animation: pulse 1s infinite;">➡️</span>
                 </div>
-                
                 <div style="text-align: center;">
                     <span style="font-size: 4em; animation: float 2s ease-in-out infinite;">${newMonster.sprite}</span>
                     <p style="color: #ffd700; font-weight: bold; margin-top: 10px;">${newMonster.name}</p>
                 </div>
             </div>
-            
             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 20px 0;">
                 <h4 style="color: #ffd700; margin-bottom: 10px;">📊 Nuove Statistiche</h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center;">
@@ -357,9 +366,7 @@ function showEvolutionScreen(oldName, oldSprite, newMonster) {
                     </div>
                 </div>
             </div>
-            
             <p style="color: #ffd700; font-style: italic; margin-bottom: 20px;">Il tuo ${oldName} è cresciuto più forte!</p>
-            
             <button onclick="closeEvolutionPopup()" 
                     style="
                         background: linear-gradient(45deg, #ffd700, #ff8c00);
@@ -375,7 +382,6 @@ function showEvolutionScreen(oldName, oldSprite, newMonster) {
             </button>
         </div>
     `;
-    
     // Add CSS animations
     const style = document.createElement('style');
     style.textContent = `
@@ -397,17 +403,12 @@ function showEvolutionScreen(oldName, oldSprite, newMonster) {
         }
     `;
     document.head.appendChild(style);
-    
-    // Add popup to page
     document.body.appendChild(popup);
-    
-    // Auto-close after 4 seconds
     setTimeout(() => {
         closeEvolutionPopup();
     }, 4000);
 }
 
-// Close evolution popup
 function closeEvolutionPopup() {
     const popup = document.getElementById('evolution-popup');
     if (popup) {
@@ -416,7 +417,12 @@ function closeEvolutionPopup() {
             if (popup.parentNode) {
                 popup.parentNode.removeChild(popup);
             }
+            window.evolutionPopupActive = false;
+            processEvolutionQueue(); // Show next popup if any
         }, 300);
+    } else {
+        window.evolutionPopupActive = false;
+        processEvolutionQueue();
     }
 }
 
@@ -532,15 +538,29 @@ function initializeCaptureHistory() {
 function spawnMonster() {
     // Determine level based on current floor
     const floorBlock = Math.floor((game.currentFloor - 1) / 10) + 1;
-    const minLevel = Math.max(1, floorBlock * 2 - 1);
-    const maxLevel = floorBlock * 2 + 1;
-    const wildLevel = minLevel + Math.floor(Math.random() * (maxLevel - minLevel + 1));
-    
+    // Granular scaling: as you go up each floor, min/max level increases
+    const blockStart = (floorBlock - 1) * 10 + 1;
+    const blockEnd = floorBlock * 10;
+    const floorsIntoBlock = game.currentFloor - blockStart;
+    // Base min/max for the block
+    let minLevel = Math.max(1, floorBlock * 2 - 1 + Math.floor(floorsIntoBlock / 3));
+    let maxLevel = floorBlock * 2 + 1 + Math.floor(floorsIntoBlock / 2);
+    // Bias: higher floors in block more likely to get higher level
+    let wildLevel = minLevel;
+    if (maxLevel > minLevel) {
+        // Weighted random: higher floors = higher chance for higher level
+        const bias = 0.5 + (floorsIntoBlock / 20); // up to +0.5 bias at end of block
+        const r = Math.pow(Math.random(), 1 - bias); // skews towards higher
+        wildLevel = minLevel + Math.floor(r * (maxLevel - minLevel + 1));
+    }
+    // Boss boost: every 10th floor
+    if (game.currentFloor % 10 === 0) {
+        wildLevel += 2 + Math.floor(floorBlock / 2); // +2, more in later blocks
+    }
     // Determine rarity and whether to spawn evolved forms
     const rand = Math.random();
     let rarity;
     let allowEvolved = game.currentFloor >= 20;
-    
     if (floorBlock <= 2) {
         // Early floors: mostly common
         if (rand < 0.7) rarity = "Comune";
@@ -559,10 +579,8 @@ function spawnMonster() {
         else if (rand < 0.8) rarity = "Raro";
         else rarity = "Leggendario";
     }
-    
     // Get available monsters
     let available = monsterData.filter(m => m.rarity === rarity);
-    
     // If we're past floor 20, maybe spawn evolved forms
     if (allowEvolved && Math.random() < 0.3) { // 30% chance for evolved form
         const evolvedMonsters = available.filter(m => m.stage === 2);
@@ -573,14 +591,10 @@ function spawnMonster() {
         // Filter to stage 1 monsters only
         available = available.filter(m => m.stage === 1);
     }
-    
     const monster = available[Math.floor(Math.random() * available.length)];
-    
     game.currentMonster = createScaledMonster(monster, wildLevel);
     game.battlesThisBlock++; // Count this battle
-    
     const stageText = game.currentMonster.stage === 2 ? " (Evoluto)" : "";
-    
     document.getElementById('encounter-area').innerHTML = `
         <div class="encounter">
             <h3>🚨 Mostro Selvaggio - Piano ${game.currentFloor}</h3>
@@ -596,7 +610,6 @@ function spawnMonster() {
             </div>
         </div>
     `;
-    
     addLog(`🎯 Piano ${game.currentFloor}: ${monster.name} Lv.${wildLevel} (${monster.rarity})${stageText}`);
 }
 
@@ -661,20 +674,44 @@ function attemptCatch() {
             // Find existing monster in same evolution line
             const existingMonster = game.monsters.find(m => m.evolutionLine === monster.evolutionLine);
             if (existingMonster) {
-                // MERGE: Convert caught monster to EXP for existing monster
-                const levelMultiplier = Math.max(1, parseInt(monster.level) || 1);
-                const mergeExp = (parseInt(monster.expValue) || 10) * 2 * levelMultiplier;
+                // MERGE: Convert caught monster to EXP for existing monster with level-based penalties
+                const caughtLevel = parseInt(monster.level) || 1;
+                const existingLevel = parseInt(existingMonster.level) || 1;
+                const levelDiff = existingLevel - caughtLevel;
+                
+                // New base merge EXP: scales with caught monster's level
+                let baseMergeExp = (parseInt(monster.expValue) || 10) * caughtLevel;
+                
+                // Heavier penalty for lower-level merges: 30% per level difference, minimum 10% of base value
+                let levelPenalty = 1.0;
+                if (levelDiff > 0) {
+                    levelPenalty = Math.max(0.1, 1.0 - (levelDiff * 0.3));
+                }
+                // No bonus for higher-level merges (levelDiff < 0)
+                const mergeExp = Math.floor(baseMergeExp * levelPenalty);
+                
                 // Store original level before merging
                 const originalLevel = existingMonster.level;
                 giveMonsterExp(existingMonster, mergeExp);
+                
+                const penaltyText = levelDiff > 0 ? ` (penalità livello: -${Math.round((1-levelPenalty)*100)}%)` : '';
                 addLog(`🔄 ${monster.name} Lv.${monster.level} catturato e fuso con ${existingMonster.name}!${showMoney ? ` (+${moneyReward} monete)` : ''}`);
-                addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione!`);
+                addLog(`💫 ${existingMonster.name} ha guadagnato ${mergeExp} EXP dalla fusione${penaltyText}!`);
                 showMergeSuccess(monster, existingMonster, mergeExp, originalLevel, showMoney ? moneyReward : null);
             } else {
                 // NEW MONSTER: Add to collection - MAINTAIN LEVEL
                 const newMonster = initializeMonster(monster);
                 game.monsters.push(newMonster);
                 addLog(`🎉 ${monster.name} Lv.${monster.level} catturato!${showMoney ? ` (+${moneyReward} monete)` : ''}`);
+                
+                // Check if the newly caught monster can evolve (e.g., caught at level higher than evolution requirement)
+                if (canEvolve(newMonster)) {
+                    setTimeout(() => {
+                        evolveMonster(newMonster);
+                        updateDisplay(); // Update display after evolution
+                    }, 1000);
+                }
+                
                 showCaptureSuccess(newMonster);
             }
             game.currentMonster = null;

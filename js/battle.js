@@ -279,8 +279,11 @@ function playerAttack() {
     const enemyLevel = parseInt(enemyMonster.level) || 1;
     const levelDiff = playerLevel - enemyLevel;
     
-    // Base damage calculation with level scaling - reduced defense effectiveness
-    let baseDamage = Math.max(1, Math.floor(playerAttackStat - enemyDefense / 4));
+    // Improved damage formula with better defense scaling
+    // Base damage: attack * (1 - defense/(defense + attack))
+    // This creates diminishing returns on defense while keeping it relevant
+    const defenseEffectiveness = enemyDefense / (enemyDefense + playerAttackStat);
+    let baseDamage = Math.max(1, Math.floor(playerAttackStat * (1 - defenseEffectiveness)));
     
     // Level advantage/disadvantage modifier (max ±50%)
     const levelModifier = Math.max(0.5, Math.min(1.5, 1 + (levelDiff * 0.1)));
@@ -320,8 +323,11 @@ function enemyAttack() {
     const enemyLevel = parseInt(enemyMonster.level) || 1;
     const levelDiff = enemyLevel - playerLevel;
     
-    // Base damage calculation with level scaling - reduced defense effectiveness
-    let baseDamage = Math.max(1, Math.floor(enemyAttackStat - playerDefense / 4));
+    // Improved damage formula with better defense scaling
+    // Base damage: attack * (1 - defense/(defense + attack))
+    // This creates diminishing returns on defense while keeping it relevant
+    const defenseEffectiveness = playerDefense / (playerDefense + enemyAttackStat);
+    let baseDamage = Math.max(1, Math.floor(enemyAttackStat * (1 - defenseEffectiveness)));
     
     // Level advantage/disadvantage modifier (max ±25%)
     const levelModifier = Math.max(0.25, Math.min(1.5, 1 + (levelDiff * 0.1)));
@@ -477,7 +483,7 @@ function endBattle(result) {
             <div class="encounter">
                 <h3 style="color: #4CAF50;">🏆 Vittoria!</h3>
                 <span class="monster-sprite">${game.battle.enemyMonster.sprite}</span>
-                <h4>${game.battle.enemyMonster.name} è stato sconfitto!</h4>
+                <h4>${game.battle.enemyMonster.name} Lv.${game.battle.enemyMonster.level} è stato sconfitto!</h4>
                 <p style="color: #4CAF50; margin: 15px 0;">Il mostro è indebolito e più facile da catturare!</p>
                 ${isBoss ? '<p style="color: #ffd700;">👑 Boss sconfitto! Squadra curata!</p>' : ''}
                 <p style="color: #ffd700;">💰 +${moneyReward} monete</p>

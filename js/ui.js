@@ -115,6 +115,8 @@ function updateCollection() {
     sortedMonsters.forEach((monster, index) => {
         const div = document.createElement('div');
         div.className = 'monster-item';
+        div.onclick = () => showMonsterInfoPopup(monster);
+        div.style.cursor = 'pointer';
         
         const level = monster.level || 1;
         const hp = Math.max(0, parseInt(monster.hp) || 0);
@@ -148,20 +150,9 @@ function updateCollection() {
         const monsterOpacity = isKO ? '0.6' : '1';
         const monsterBorder = isKO ? '2px solid #f44336' : '';
         
-        // Rarity color
-        let rarityColor = '#888';
-        switch(monster.rarity) {
-            case 'Comune': rarityColor = '#4CAF50'; break;
-            case 'Non Comune': rarityColor = '#2196F3'; break;
-            case 'Raro': rarityColor = '#9C27B0'; break;
-            case 'Leggendario': rarityColor = '#FF9800'; break;
-        }
-        
         // Evolution indicator
         const stage = monster.stage || 1;
         const stageIndicator = stage === 2 ? '⭐' : '';
-        const evolutionInfo = canEvolve(monster) ? 
-            `<span style="color: #ffd700; font-size: 0.8em; margin-left: 5px;">🔄 Può evolversi!</span>` : '';
         
         div.style.opacity = monsterOpacity;
         div.style.border = monsterBorder;
@@ -173,28 +164,19 @@ function updateCollection() {
                     <strong>${monster.name}</strong> ${stageIndicator}
                     <span class="monster-level">Lv.${level}</span>
                     ${isKO ? '<span style="color: #f44336; font-size: 0.8em; margin-left: 5px;">💀 KO</span>' : ''}
-                    ${evolutionInfo}
                 </div>
                 <div class="monster-details">
-                    <small style="color: ${rarityColor};">${monster.rarity}${stage === 2 ? ' (Evoluto)' : ''}</small>
                     <div class="hp-bar-container">
-                        <span class="hp-text">HP: ${hp}/${actualMaxHP}</span>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${hpPercentage}%; background-color: ${hpColor};"></div>
                         </div>
                     </div>
                     <div class="exp-bar-container">
-                        <span class="exp-text">EXP: ${exp}/${expToNext}</span>
                         <div class="progress-bar exp-bar">
                             <div class="progress-fill" style="width: ${expPercentage}%; background-color: #2196F3;"></div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="monster-actions">
-                ${hp <= 0 ? '<span class="status-indicator defeated">💀</span>' : 
-                  hp < maxHP ? '<span class="status-indicator injured">🩹</span>' : 
-                  '<span class="status-indicator healthy">💚</span>'}
             </div>
         `;
         
@@ -312,134 +294,174 @@ function showGameOverNotification(floor, monstersCount, uniqueCaught, totalAvail
     );
 }
 
-// Show evolution notification
-function showEvolutionNotification(oldName, newName) {
-    showNotification(`✨ ${oldName} si è evoluto in ${newName}!`, 'evolution', 4000);
-}
-
-// Animate stat changes (enhanced for reset scenarios)
-function animateStatChange(elementId, newValue, oldValue = null) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
+// Show monster info popup with detailed information
+function showMonsterInfoPopup(monster) {
+    const level = monster.level || 1;
+    const hp = Math.max(0, parseInt(monster.hp) || 0);
+    const maxHP = parseInt(monster.maxHP) || parseInt(monster.baseHP) || 0;
+    const exp = monster.exp || 0;
+    const expToNext = monster.expToNext || 50;
+    const attack = parseInt(monster.attack) || parseInt(monster.baseAttack) || 20;
+    const defense = parseInt(monster.defense) || parseInt(monster.baseDefense) || 15;
+    const stage = monster.stage || 1;
     
-    // Special animation for reset
-    if (oldValue !== null && newValue < oldValue) {
-        element.style.color = '#f44336'; // Red for decrease
-    } else if (oldValue !== null && newValue > oldValue) {
-        element.style.color = '#4CAF50'; // Green for increase
+    // Calculate percentages
+    const hpPercentage = maxHP > 0 ? (hp / maxHP) * 100 : 100;
+    const expPercentage = expToNext > 0 ? (exp / expToNext) * 100 : 0;
+    
+    // Determine HP color
+    let hpColor = '#4CAF50'; // Green
+    if (hpPercentage <= 25) hpColor = '#f44336'; // Red
+    else if (hpPercentage <= 50) hpColor = '#FF9800'; // Orange
+    else if (hpPercentage <= 75) hpColor = '#FFC107'; // Yellow
+    
+    // Rarity color
+    let rarityColor = '#888';
+    switch(monster.rarity) {
+        case 'Comune': rarityColor = '#4CAF50'; break;
+        case 'Non Comune': rarityColor = '#2196F3'; break;
+        case 'Raro': rarityColor = '#9C27B0'; break;
+        case 'Leggendario': rarityColor = '#FF9800'; break;
     }
     
-    // Simple pulse animation for changes
-    element.style.transform = 'scale(1.1)';
-    element.style.transition = 'transform 0.2s ease, color 0.5s ease';
-    
-    setTimeout(() => {
-        element.textContent = newValue;
-        element.style.transform = 'scale(1)';
-    }, 100);
-    
-    // Reset color after animation
-    setTimeout(() => {
-        element.style.color = ''; // Reset to default
-    }, 1500);
-}
-
-// Format numbers with separators for large values
-function formatNumber(num) {
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
+    // Stage information
+    let stageInfo = '';
+    if (canEvolve(monster)) {
+        stageInfo = `Stage ${stage} (può evolversi)`;
+    } else if (monster.evolutionName) {
+        stageInfo = `Stage ${stage} (può evolversi in ${monster.evolutionName})`;
+    } else {
+        stageInfo = 'Stage finale (non può evolversi)';
     }
-    return num.toString();
-}
-
-// Show monster status summary (useful for battle preparation)
-function showMonsterStatusSummary() {
-    const healthyCount = game.monsters.filter(m => m.hp === m.maxHP).length;
-    const injuredCount = game.monsters.filter(m => m.hp > 0 && m.hp < m.maxHP).length;
-    const koCount = game.monsters.filter(m => m.hp <= 0).length;
     
-    if (game.monsters.length === 0) return;
+    // Evolution info
+    const evolutionInfo = canEvolve(monster) ? 
+        `<p style="color: #ffd700; font-size: 0.9em;">🔄 Può evolversi al livello ${monster.evolutionLevel}!</p>` : '';
     
-    let statusMessage = `Squadra: `;
-    if (healthyCount > 0) statusMessage += `${healthyCount} 💚 `;
-    if (injuredCount > 0) statusMessage += `${injuredCount} 🩹 `;
-    if (koCount > 0) statusMessage += `${koCount} 💀`;
+    // Create popup
+    const popup = document.createElement('div');
+    popup.id = 'monster-info-popup';
+    popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-in;
+    `;
     
-    addLog(`📊 ${statusMessage}`);
-}
-
-// Show detailed evolution information in shop
-function showEvolutionGuide() {
-    const evolutionLines = {};
-    
-    // Group monsters by evolution line
-    monsterData.forEach(monster => {
-        if (!evolutionLines[monster.evolutionLine]) {
-            evolutionLines[monster.evolutionLine] = [];
-        }
-        evolutionLines[monster.evolutionLine].push(monster);
-    });
-    
-    let evolutionHtml = '';
-    Object.keys(evolutionLines).forEach(line => {
-        const monsters = evolutionLines[line].sort((a, b) => (a.stage || 1) - (b.stage || 1));
-        
-        if (monsters.length > 1) {
-            evolutionHtml += `
-                <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        ${monsters.map((monster, index) => `
-                            <div style="text-align: center;">
-                                <span style="font-size: 2em;">${monster.sprite}</span>
-                                <p style="font-size: 0.9em; margin: 5px 0;">${monster.name}</p>
-                                <small style="color: #ccc;">
-                                    ${monster.stage === 1 && monster.evolutionLevel ? 
-                                        `Evolve Lv.${monster.evolutionLevel}` : 
-                                        monster.stage === 2 ? 'Evoluto' : 'Finale'}
-                                </small>
-                            </div>
-                            ${index < monsters.length - 1 ? '<span style="font-size: 1.5em; color: #ffd700;">➡️</span>' : ''}
-                        `).join('')}
+    popup.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, rgba(50, 50, 50, 0.95), rgba(30, 30, 30, 0.95));
+            border: 2px solid ${rarityColor};
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease-out;
+        ">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <span style="font-size: 3em;">${monster.sprite}</span>
+                <div style="text-align: left;">
+                    <h3 style="color: white; margin: 0;">${monster.name}</h3>
+                    <p style="color: ${rarityColor}; margin: 5px 0;">${monster.rarity} - ${stageInfo}</p>
+                    <p style="color: #ffd700; margin: 0;">Lv.${level}</p>
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                <h4 style="color: #4CAF50; margin-bottom: 10px;">❤️ HP</h4>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1; background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${hpPercentage}%; height: 100%; background-color: ${hpColor};"></div>
+                    </div>
+                    <span style="color: white; font-size: 0.9em;">${hp}/${maxHP}</span>
+                </div>
+                
+                <h4 style="color: #2196F3; margin-bottom: 10px;">🌟 EXP</h4>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <div style="flex: 1; background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${expPercentage}%; height: 100%; background-color: #2196F3;"></div>
+                    </div>
+                    <span style="color: white; font-size: 0.9em;">${exp}/${expToNext}</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                    <div>
+                        <strong style="color: #f44336;">⚔️ ATK</strong><br>
+                        <span style="font-size: 1.2em; color: white;">${attack}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #2196F3;">🛡️ DEF</strong><br>
+                        <span style="font-size: 1.2em; color: white;">${defense}</span>
                     </div>
                 </div>
-            `;
-        }
-    });
-    
-    document.getElementById('encounter-area').innerHTML = `
-        <div class="encounter">
-            <h3 style="color: #ffd700;">✨ Guida alle Evoluzioni</h3>
-            <span class="monster-sprite">📚</span>
-            
-            <div style="margin: 20px 0; padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 8px;">
-                <h4 style="color: #ffd700; margin-bottom: 10px;">🔄 Come Funzionano le Evoluzioni</h4>
-                <p style="font-size: 0.9em; line-height: 1.4; color: #ccc;">
-                    • I mostri evolvono automaticamente raggiungendo certi livelli<br>
-                    • <strong>Comuni:</strong> Evolvono al livello 10<br>
-                    • <strong>Non Comuni:</strong> Evolvono al livello 15<br>
-                    • <strong>Rari:</strong> Evolvono al livello 20<br>
-                    • Le fusioni funzionano su tutta la linea evolutiva<br>
-                    • Dopo il piano 20 puoi trovare forme evolute in natura
-                </p>
             </div>
             
-            <div style="max-height: 300px; overflow-y: auto;">
-                <h4 style="color: #2196F3; margin-bottom: 15px;">🔗 Linee Evolutive</h4>
-                ${evolutionHtml}
-            </div>
+            ${evolutionInfo}
             
-            <div class="buttons">
-                <button onclick="spawnShop()">↩️ Torna al Negozio</button>
-            </div>
+            <p style="color: #ccc; font-size: 0.9em; margin: 15px 0;">
+                Catturato: ${new Date(monster.captureDate).toLocaleDateString()}
+            </p>
+            
+            <button onclick="closeMonsterInfoPopup()" 
+                    style="
+                        background: linear-gradient(45deg, #4CAF50, #2E7D32);
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        color: white;
+                        font-weight: bold;
+                        cursor: pointer;
+                        font-size: 1.1em;
+                    ">
+                ✨ Chiudi
+            </button>
         </div>
     `;
     
-    addLog(`✨ Guida alle evoluzioni visualizzata!`);
+    // Add CSS animations if not already present
+    if (!document.getElementById('monster-popup-styles')) {
+        const style = document.createElement('style');
+        style.id = 'monster-popup-styles';
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes scaleIn {
+                from { transform: scale(0.8); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(popup);
+    
+    // Close on background click
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            closeMonsterInfoPopup();
+        }
+    });
 }
 
-// Show loading state during async operations
-function showLoading(show = true) {
-    // Function kept for compatibility - not currently used
+// Close monster info popup
+function closeMonsterInfoPopup() {
+    const popup = document.getElementById('monster-info-popup');
+    if (popup) {
+        popup.style.animation = 'fadeIn 0.3s ease-in reverse';
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.parentNode.removeChild(popup);
+            }
+        }, 300);
+    }
 }

@@ -38,15 +38,7 @@ function spawnShop() {
                     </button>
                 </div>
                 
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <strong>📊 Info Squadra</strong> - Gratis
-                        <br><small>Mostra statistiche dettagliate dei tuoi mostri</small>
-                    </div>
-                    <button onclick="showTeamStats()" class="shop-buy-btn" ${game.monsters.length === 0 ? 'disabled' : ''}>
-                        Visualizza
-                    </button>
-                </div>
+
                 
                 <div class="shop-item">
                     <div class="shop-item-info">
